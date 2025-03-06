@@ -8,10 +8,8 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>hello</module>
     <module>webflux</module>
     <module>eureka</module>
-    <module>openapi</module>
     <module>jpa-multitenancy</module>
     <module>elasticache-redis</module>
     <module>docker</module>

@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: Bank APIs
+  description: |
+    ### Common Error Codes
+    * 400: Bad Request
+    * 401: Unauthorized Client, No Retry
+    * 404: Not Found
+  version: "1"
+servers:
+  - url: 'http://localhost:8080/v1/'
+paths:
+  /accounts/{accountId}:
+    get:
+      summary: Get account by ID
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Pre-signed URL response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccount'
+components:
+  schemas:
+    BankAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        amount:
+          type: integer
+          format: double

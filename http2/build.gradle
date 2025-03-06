@@ -1,0 +1,14 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.2'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+}
+
+test {
+    useJUnitPlatform()
+}

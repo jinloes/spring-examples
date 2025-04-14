@@ -18,7 +18,7 @@ public class LoomHelloWorldController {
   public ResponseEntity<String> hello() throws InterruptedException {
     LOGGER.info("Hello: " + Thread.currentThread());
 
-    Thread.sleep(Duration.ofSeconds(10));
+    Thread.sleep(Duration.ofSeconds(10L).toMillis());
 
     return ResponseEntity.ok("hello");
   }

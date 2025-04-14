@@ -8,7 +8,6 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>webflux</module>
     <module>eureka</module>
     <module>jpa-multitenancy</module>
     <module>elasticache-redis</module>
@@ -18,7 +17,7 @@
     <module>elasticsearch</module>
     <module>springdoc-openapi</module>
     <module>react</module>
-    <module>angular</module>
+    <!--<module>angular</module>-->
     <module>oauth2</module>
     <module>graphql</module>
     <module>theta-sketch</module>

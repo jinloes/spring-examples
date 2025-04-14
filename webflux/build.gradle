@@ -1,0 +1,27 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.4'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation project(':jwt-common')
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-webflux'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testImplementation group: 'org.assertj', name: 'assertj-core'
+    testImplementation group: 'io.gatling.highcharts', name: 'gatling-charts-highcharts', version: '3.13.5'
+}
+
+test {
+    useJUnitPlatform()
+}

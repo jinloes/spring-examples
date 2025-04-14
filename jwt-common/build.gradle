@@ -1,0 +1,11 @@
+dependencies {
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+    compileOnly group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
+
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-impl'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson'
+}

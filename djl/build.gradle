@@ -1,0 +1,19 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.2'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation 'ai.djl.huggingface:tokenizers:0.33.0'
+    implementation 'ai.djl.pytorch:pytorch-model-zoo:0.33.0'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

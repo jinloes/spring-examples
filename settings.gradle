@@ -1,6 +1,7 @@
 include(
         ":djl",
         ":http2",
+        ":jpa-multitenancy",
         ":jwt-common",
         ":llm",
         ":loom-web",

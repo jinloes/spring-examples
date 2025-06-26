@@ -9,7 +9,6 @@
 
   <modules>
     <module>eureka</module>
-    <module>elasticache-redis</module>
     <module>docker</module>
     <module>cloud-contract</module>
     <module>kafka</module>

@@ -6,5 +6,6 @@ include(
         ":llm",
         ":loom-web",
         ":openapi",
+        ":rate-limiting",
         ":webflux",
 )

@@ -1,6 +1,0 @@
-cloud:
-  aws:
-    region:
-      static: us-west-1
-server:
-  port: 5000

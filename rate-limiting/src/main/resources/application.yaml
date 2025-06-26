@@ -1,0 +1,13 @@
+spring:
+  data:
+    redis:
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+logging:
+  level:
+    com.jinloes.rate_limiting: DEBUG

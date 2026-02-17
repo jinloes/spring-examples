@@ -3,9 +3,9 @@ include(
         ":http2",
         ":jpa-multitenancy",
         ":jwt-common",
-        ":llm",
         ":loom-web",
         ":openapi",
         ":rate-limiting",
         ":webflux",
+        ":grpc"
 )

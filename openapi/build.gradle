@@ -1,6 +1,8 @@
 plugins {
     id 'org.springframework.boot' version '3.4.2'
     id 'org.openapi.generator' version '7.12.0'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
 }
 
 group 'com.jinloes'

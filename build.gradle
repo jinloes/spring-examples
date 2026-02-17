@@ -6,44 +6,46 @@ subprojects {
     repositories {
         mavenCentral()
     }
-    apply plugin: 'java'
-    apply plugin: 'io.spring.dependency-management'
 
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-
-    dependencyManagement {
-        dependencies {
-            dependencySet(group: 'org.junit.jupiter', version: "5.11.3") {
-                entry 'junit-jupiter-api'
-                entry 'junit-jupiter-engine'
-                entry 'junit-jupiter-params'
-            }
-            dependencySet(group: 'com.fasterxml.jackson.core', version: "2.18.2") {
-                entry 'jackson-core'
-                entry 'jackson-databind'
-            }
-            dependencySet(group: 'io.jsonwebtoken', version: '0.12.6') {
-                entry 'jjwt-api'
-                entry 'jjwt-impl'
-                entry 'jjwt-jackson'
-            }
-            dependency group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'
-            dependency group: 'org.assertj', name: 'assertj-core', version: '3.26.3'
-            dependency group: 'io.vavr', name: 'vavr', version: '0.10.3'
-            dependency group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
-            dependency group: 'commons-io', name: 'commons-io', version: '2.18.0'
-            dependency group: 'org.projectlombok', name: 'lombok', version: '1.18.38'
+    plugins.withType(JavaPlugin) {
+        java {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
         }
-    }
 
-    test {
-        useJUnitPlatform()
+        dependencyManagement {
+            dependencies {
+                dependencySet(group: 'org.junit.jupiter', version: '6.0.3') {
+                    entry 'junit-jupiter-api'
+                    entry 'junit-jupiter-engine'
+                    entry 'junit-jupiter-params'
+                }
+                dependencySet(group: 'com.fasterxml.jackson.core', version: '2.18.2') {
+                    entry 'jackson-core'
+                    entry 'jackson-databind'
+                }
+                dependencySet(group: 'io.jsonwebtoken', version: '0.12.6') {
+                    entry 'jjwt-api'
+                    entry 'jjwt-impl'
+                    entry 'jjwt-jackson'
+                }
+                dependency group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'
+                dependency group: 'org.assertj', name: 'assertj-core', version: '3.26.3'
+                dependency group: 'io.vavr', name: 'vavr', version: '0.10.3'
+                dependency group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
+                dependency group: 'commons-io', name: 'commons-io', version: '2.18.0'
+                dependency group: 'org.projectlombok', name: 'lombok', version: '1.18.38'
+            }
+        }
+
+        test {
+            useJUnitPlatform()
+        }
     }
 }
 
 tasks.named('wrapper') {
-    gradleVersion = '8.12.1'
+    gradleVersion = '9.3.1'
     distributionType = Wrapper.DistributionType.ALL
 }
 

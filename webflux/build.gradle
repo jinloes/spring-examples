@@ -1,5 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
 }
 
 group 'com.jinloes'

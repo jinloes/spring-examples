@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: grpc-example-test
+
+grpc:
+  server:
+    # In-process server for fast testing (no network port needed)
+    in-process-name: test
+  client:
+    # In-process client (communicates in-memory)
+    inProcess:
+      address: in-process:test
+    # Network client (for testing against external servers)
+    grpc-server:
+      address: static://localhost:9090
+      negotiation-type: plaintext

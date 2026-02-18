@@ -1,0 +1,18 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# Generated proto files (can be regenerated)
+**/generated/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

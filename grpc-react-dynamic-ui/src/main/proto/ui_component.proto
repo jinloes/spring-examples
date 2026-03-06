@@ -18,17 +18,32 @@ message ComponentsResponse {
   repeated ComponentResponse components = 1;
 }
 
-message StringList {
-  repeated string values = 1;
+message EqualsOperator {
+  string field = 1;
+  string value = 2;
+}
+
+message NotEqualsOperator {
+  string field = 1;
+  string value = 2;
+}
+
+message InOperator {
+  string field = 1;
+  repeated string values = 2;
+}
+
+message NotInOperator {
+  string field = 1;
+  repeated string values = 2;
 }
 
 message Condition {
-  string field = 1;
   oneof operator {
-    string equals = 2;
-    string notEquals = 3;
-    StringList in = 4;
-    StringList notIn = 5;
+    EqualsOperator equals = 1;
+    NotEqualsOperator notEquals = 2;
+    InOperator in = 3;
+    NotInOperator notIn = 4;
   }
 }
 

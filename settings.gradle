@@ -7,5 +7,6 @@ include(
         ":openapi",
         ":rate-limiting",
         ":webflux",
-        ":grpc"
+        ":grpc",
+        ":grpc-react-dynamic-ui"
 )

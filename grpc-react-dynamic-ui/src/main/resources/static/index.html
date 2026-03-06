@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gRPC Dynamic UI</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #333; }
+    .app { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    .search-bar { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .search-bar input { flex: 1; min-width: 200px; padding: 0.6rem 1rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    .search-bar button { padding: 0.6rem 1.2rem; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+    .search-bar button:hover { background: #1d4ed8; }
+    .presets { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .preset-btn { padding: 0.4rem 0.8rem; background: #e5e7eb; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+    .preset-btn:hover { background: #d1d5db; }
+    .error { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; color: #b91c1c; }
+    .components-grid { display: grid; gap: 1.5rem; }
+    .component-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); padding: 1.5rem; }
+    .component-card h2 { font-size: 1rem; font-weight: 600; color: #555; margin-bottom: 0.25rem; }
+    .component-type-badge { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; margin-bottom: 1rem; font-weight: 600; }
+    .type-button { background: #dbeafe; color: #1e40af; }
+    .type-text { background: #dcfce7; color: #166534; }
+    .type-form { background: #fef3c7; color: #92400e; }
+    .type-card { background: #f3e8ff; color: #6b21a8; }
+    .fields-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .field-item { border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.75rem; }
+    .field-label { font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem; }
+    .field-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .badge { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 4px; }
+    .badge-required { background: #fee2e2; color: #b91c1c; }
+    .badge-condition { background: #fef3c7; color: #854d0e; }
+    .empty { text-align: center; color: #9ca3af; padding: 3rem; }
+    .loading { text-align: center; padding: 2rem; color: #6b7280; }
+    .field-input { width: 100%; margin-top: 0.4rem; padding: 0.4rem 0.6rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.9rem; background: #f9fafb; appearance: auto; }
+    .field-input:focus { outline: none; border-color: #2563eb; background: #fff; }
+    .field-checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; }
+    .field-checkbox-row input { width: 1rem; height: 1rem; cursor: pointer; }
+    .field-action-btn { margin-top: 0.4rem; padding: 0.4rem 1rem; background: #2563eb; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+    .field-action-btn:hover { background: #1d4ed8; }
+    .card-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; }
+    .btn-primary { padding: 0.5rem 1.25rem; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { padding: 0.5rem 1.25rem; background: #fff; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+    .btn-secondary:hover { background: #f9fafb; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { useState, useCallback, useEffect } = React;
+
+  const PRESETS = [
+    { label: "All Components", ids: "add-contact,select-produce,reroute-case" },
+    { label: "Add Contact", ids: "add-contact" },
+    { label: "Produce Selector", ids: "select-produce" },
+    { label: "Reroute Case", ids: "reroute-case" },
+  ];
+
+  function isVisible(field, fieldValues) {
+    if (!field.visible) return true;
+    const { field: condField, equals, notEquals, in: inList, notIn } = field.visible;
+    const current = fieldValues[condField] ?? "";
+    if (equals !== undefined) return current === equals;
+    if (notEquals !== undefined) return current !== notEquals;
+    if (inList !== undefined) return inList.includes(current);
+    if (notIn !== undefined) return !notIn.includes(current);
+    return true;
+  }
+
+  function initFieldValues(fields) {
+    const values = {};
+    (fields || []).forEach(f => {
+      values[f.name] = f.type === "checkbox"
+        ? (f.values?.[0] ?? "false")
+        : (f.values?.[0] ?? "");
+    });
+    return values;
+  }
+
+  function SelectInput({ field, value, onChange }) {
+    return (
+      <select
+        className="field-input"
+        value={value}
+        onChange={e => onChange(field.name, e.target.value)}
+      >
+        {(field.values || []).map((v, i) => (
+          <option key={i} value={v}>{v}</option>
+        ))}
+      </select>
+    );
+  }
+
+  function ConditionBadge({ visible }) {
+    const op = visible.equals !== undefined ? `= "${visible.equals}"` : `≠ "${visible.notEquals}"`;
+    return <span className="badge badge-condition">visible when {visible.field} {op}</span>;
+  }
+
+  function FieldInput({ field, value, onChange }) {
+    switch (field.type) {
+      case "select":
+        return <SelectInput field={field} value={value} onChange={onChange} />;
+      case "checkbox":
+        return (
+          <div className="field-checkbox-row">
+            <input
+              id={`field-${field.name}`}
+              type="checkbox"
+              checked={value === "true"}
+              onChange={e => onChange(field.name, e.target.checked ? "true" : "false")}
+            />
+            <label htmlFor={`field-${field.name}`}>{field.label}</label>
+          </div>
+        );
+      case "textarea":
+        return (
+          <textarea
+            className="field-input"
+            rows={3}
+            value={value}
+            onChange={e => onChange(field.name, e.target.value)}
+          />
+        );
+      case "button":
+        return (
+          <div>
+            {(field.values && field.values.length > 0 ? field.values : [field.label]).map((v, i) => (
+              <button key={i} className="field-action-btn" style={{ marginRight: "0.4rem" }}>{v}</button>
+            ))}
+          </div>
+        );
+      case "password":
+        return (
+          <input
+            className="field-input"
+            type="password"
+            value={value}
+            onChange={e => onChange(field.name, e.target.value)}
+          />
+        );
+      default:
+        return (
+          <input
+            className="field-input"
+            type="text"
+            value={value}
+            onChange={e => onChange(field.name, e.target.value)}
+          />
+        );
+    }
+  }
+
+  function FieldItem({ field, fieldValues, onFieldChange }) {
+    const visible = isVisible(field, fieldValues);
+    const value = fieldValues[field.name] ?? "";
+
+    if (!visible) return null;
+
+    return (
+      <div className="field-item">
+        {field.type !== "checkbox" && (
+          <div className="field-label">{field.label}</div>
+        )}
+        <FieldInput field={field} value={value} onChange={onFieldChange} />
+        <div className="field-meta" style={{ marginTop: "0.4rem" }}>
+          {field.required && <span className="badge badge-required">required</span>}
+          {field.visible && <ConditionBadge visible={field.visible} />}
+        </div>
+      </div>
+    );
+  }
+
+  function useFieldState(fields) {
+    const [fieldValues, setFieldValues] = useState(() => initFieldValues(fields));
+    useEffect(() => { setFieldValues(initFieldValues(fields)); }, [fields]);
+    const handleFieldChange = useCallback((name, value) => {
+      setFieldValues(prev => ({ ...prev, [name]: value }));
+    }, []);
+    return [fieldValues, handleFieldChange];
+  }
+
+  function FieldList({ fields, fieldValues, onFieldChange }) {
+    return (
+      <div className="fields-list">
+        {fields.map((field, i) => (
+          <FieldItem key={i} field={field} fieldValues={fieldValues} onFieldChange={onFieldChange} />
+        ))}
+      </div>
+    );
+  }
+
+  function ComponentShell({ component, children }) {
+    const typeClass = `type-${component.type}`;
+    return (
+      <div className="component-card">
+        <h2>{component.componentId}</h2>
+        <span className={`component-type-badge ${typeClass}`}>{component.type.toUpperCase()}</span>
+        {children}
+      </div>
+    );
+  }
+
+  function SelectProduceComponent({ component }) {
+    const [fieldValues, onFieldChange] = useFieldState(component.fields);
+    return (
+      <ComponentShell component={component}>
+        <FieldList fields={component.fields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
+      </ComponentShell>
+    );
+  }
+
+  function RerouteCaseComponent({ component }) {
+    const [fieldValues, onFieldChange] = useFieldState(component.fields);
+    return (
+      <ComponentShell component={component}>
+        <FieldList fields={component.fields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
+        <div className="card-actions">
+          <button className="btn-primary">Reroute</button>
+          <button className="btn-secondary">Cancel</button>
+        </div>
+      </ComponentShell>
+    );
+  }
+
+  function AddContactComponent({ component }) {
+    const [fieldValues, onFieldChange] = useFieldState(component.fields);
+    return (
+      <ComponentShell component={component}>
+        <FieldList fields={component.fields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
+        <div className="card-actions">
+          <button className="btn-primary">Add Contact</button>
+          <button className="btn-secondary">Cancel</button>
+        </div>
+      </ComponentShell>
+    );
+  }
+
+  const COMPONENT_ID_RENDERERS = {
+    "select-produce": SelectProduceComponent,
+    "reroute-case": RerouteCaseComponent,
+    "add-contact": AddContactComponent,
+  };
+
+  function ComponentCard({ component }) {
+    const Renderer = COMPONENT_ID_RENDERERS[component.componentId];
+    if (!Renderer) return null;
+    return <Renderer component={component} />;
+  }
+
+  function App() {
+    const [input, setInput] = useState("select-produce,reroute-case,add-contact");
+    const [components, setComponents] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const fetchComponents = useCallback(async (ids) => {
+      const idList = ids.split(",").map(s => s.trim()).filter(Boolean);
+      if (idList.length === 0) return;
+
+      setLoading(true);
+      setError(null);
+      try {
+        const params = idList.map(id => `ids=${encodeURIComponent(id)}`).join("&");
+        const res = await fetch(`/api/components?${params}`);
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || res.statusText);
+        }
+        setComponents(await res.json());
+      } catch (e) {
+        setError(e.message);
+        setComponents([]);
+      } finally {
+        setLoading(false);
+      }
+    }, []);
+
+    const handleSearch = () => fetchComponents(input);
+
+    const handlePreset = (ids) => {
+      setInput(ids);
+      fetchComponents(ids);
+    };
+
+    return (
+      <div className="app">
+        <h1>gRPC Dynamic UI</h1>
+        <p className="subtitle">Enter component IDs to fetch their schemas from the gRPC service.</p>
+
+        <div className="search-bar">
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSearch()}
+            placeholder="e.g. btn-submit, form-login"
+          />
+          <button onClick={handleSearch}>Fetch</button>
+        </div>
+
+        <div className="presets">
+          {PRESETS.map(p => (
+            <button key={p.label} className="preset-btn" onClick={() => handlePreset(p.ids)}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        {error && <div className="error">{error}</div>}
+        {loading && <div className="loading">Loading...</div>}
+
+        {!loading && components.length === 0 && !error && (
+          <div className="empty">Enter component IDs above and click Fetch to load schemas.</div>
+        )}
+
+        <div className="components-grid">
+          {components.map(c => <ComponentCard key={c.componentId} component={c} />)}
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

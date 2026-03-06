@@ -1,0 +1,20 @@
+type: form
+fields:
+  - name: category
+    label: Category
+    type: select
+    values: [ "fruit", "vegetable" ]
+  - name: fruit
+    label: Fruit
+    type: select
+    values: [ "apple", "banana" ]
+    visible:
+      field: category
+      equals: "fruit"
+  - name: vegetable
+    label: Vegetable
+    type: select
+    values: [ "carrot", "lettuce" ]
+    visible:
+      field: category
+      equals: "vegetable"

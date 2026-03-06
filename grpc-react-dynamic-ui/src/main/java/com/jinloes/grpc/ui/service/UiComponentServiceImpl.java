@@ -5,8 +5,11 @@ import com.jinloes.grpc.ui.proto.ComponentRequest;
 import com.jinloes.grpc.ui.proto.ComponentResponse;
 import com.jinloes.grpc.ui.proto.ComponentsResponse;
 import com.jinloes.grpc.ui.proto.Condition;
+import com.jinloes.grpc.ui.proto.EqualsOperator;
 import com.jinloes.grpc.ui.proto.Field;
-import com.jinloes.grpc.ui.proto.StringList;
+import com.jinloes.grpc.ui.proto.InOperator;
+import com.jinloes.grpc.ui.proto.NotEqualsOperator;
+import com.jinloes.grpc.ui.proto.NotInOperator;
 import com.jinloes.grpc.ui.proto.UiComponentServiceGrpc;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -91,17 +94,17 @@ public class UiComponentServiceImpl extends UiComponentServiceGrpc.UiComponentSe
     }
 
     private Condition buildCondition(UiComponentProperties.ConditionConfig conditionConfig) {
-        Condition.Builder conditionBuilder = Condition.newBuilder()
-                .setField(conditionConfig.getField());
+        String field = conditionConfig.getField();
+        Condition.Builder conditionBuilder = Condition.newBuilder();
 
         if (conditionConfig.getEquals() != null) {
-            conditionBuilder.setEquals(conditionConfig.getEquals());
+            conditionBuilder.setEquals(EqualsOperator.newBuilder().setField(field).setValue(conditionConfig.getEquals()).build());
         } else if (conditionConfig.getNotEquals() != null) {
-            conditionBuilder.setNotEquals(conditionConfig.getNotEquals());
+            conditionBuilder.setNotEquals(NotEqualsOperator.newBuilder().setField(field).setValue(conditionConfig.getNotEquals()).build());
         } else if (conditionConfig.getIn() != null) {
-            conditionBuilder.setIn(StringList.newBuilder().addAllValues(conditionConfig.getIn()).build());
+            conditionBuilder.setIn(InOperator.newBuilder().setField(field).addAllValues(conditionConfig.getIn()).build());
         } else if (conditionConfig.getNotIn() != null) {
-            conditionBuilder.setNotIn(StringList.newBuilder().addAllValues(conditionConfig.getNotIn()).build());
+            conditionBuilder.setNotIn(NotInOperator.newBuilder().setField(field).addAllValues(conditionConfig.getNotIn()).build());
         }
 
         return conditionBuilder.build();

@@ -51,12 +51,23 @@ public class UiComponentController {
 
     private Map<String, Object> conditionToMap(Condition condition) {
         Map<String, Object> map = new HashMap<>();
-        map.put("field", condition.getField());
         switch (condition.getOperatorCase()) {
-            case EQUALS -> map.put("equals", condition.getEquals());
-            case NOTEQUALS -> map.put("notEquals", condition.getNotEquals());
-            case IN -> map.put("in", condition.getIn().getValuesList());
-            case NOTIN -> map.put("notIn", condition.getNotIn().getValuesList());
+            case EQUALS -> {
+                map.put("field", condition.getEquals().getField());
+                map.put("equals", condition.getEquals().getValue());
+            }
+            case NOTEQUALS -> {
+                map.put("field", condition.getNotEquals().getField());
+                map.put("notEquals", condition.getNotEquals().getValue());
+            }
+            case IN -> {
+                map.put("field", condition.getIn().getField());
+                map.put("in", condition.getIn().getValuesList());
+            }
+            case NOTIN -> {
+                map.put("field", condition.getNotIn().getField());
+                map.put("notIn", condition.getNotIn().getValuesList());
+            }
             default -> { }
         }
         return map;

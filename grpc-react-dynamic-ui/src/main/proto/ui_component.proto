@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.jinloes.grpc.ui.proto";
+option java_outer_classname = "UiComponentProto";
+
+package uiComponent;
+
+service UiComponentService {
+  rpc GetComponents (ComponentRequest) returns (ComponentsResponse);
+}
+
+message ComponentRequest {
+  repeated string componentIds = 1;
+}
+
+message ComponentsResponse {
+  repeated ComponentResponse components = 1;
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+message Condition {
+  string field = 1;
+  oneof operator {
+    string equals = 2;
+    string notEquals = 3;
+    StringList in = 4;
+    StringList notIn = 5;
+  }
+}
+
+message Field {
+  string name = 1;
+  string label = 2;
+  string type = 3;
+  repeated string values = 4;
+  bool required = 5;
+  optional Condition visible = 6;
+}
+
+message ComponentResponse {
+  string componentId = 1;
+  string type = 2;
+  repeated Field fields = 3;
+}

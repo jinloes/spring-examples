@@ -1,0 +1,63 @@
+type: form
+fields:
+  - name: rerouteTo
+    label: Reroute To
+    type: select
+    values: [ "--Select--", "Different Support Team", "Non Dedicated Support Team", "Owner Team Member", "Owner Team" ]
+  - name: rerouteReason
+    label: Reroute Reason
+    type: select
+    values: [ "Incorrect Team Assignment", "Skill Mismatch", "Workload Balancing", "Customer Request" ]
+    visible:
+      field: rerouteTo
+      notEquals: "--Select--"
+  - name: caseType
+    label: Case Type
+    type: select
+    values: [ "Incident", "Service Request", "Change Request", "Problem" ]
+    visible:
+      field: rerouteTo
+      equals: "Different Support Team"
+  - name: iNeedHelpWith
+    label: I Need Help With
+    type: select
+    values: [ "Technical Issue", "Billing", "Account Management", "Product Question" ]
+    visible:
+      field: rerouteTo
+      equals: "Different Support Team"
+  - name: reason
+    label: Reason
+    type: select
+    values: [ "Wrong Queue", "Escalation Required", "Specialization Needed" ]
+    visible:
+      field: rerouteTo
+      equals: "Different Support Team"
+  - name: reasonDetails
+    label: Reason Details
+    type: textarea
+    visible:
+      field: rerouteTo
+      equals: "Different Support Team"
+  - name: productLine
+    label: Product Line
+    type: select
+    values: [ "Enterprise", "SMB", "Consumer", "Partner" ]
+    visible:
+      field: rerouteTo
+      equals: "Different Support Team"
+  - name: supportLevel
+    label: Support Level
+    type: select
+    values: [ "Tier 1", "Tier 2", "Tier 3", "Premium" ]
+    visible:
+      field: rerouteTo
+      equals: "Different Support Team"
+  - name: ownerTeamMember
+    label: Owner Team Member
+    type: text
+    visible:
+      field: rerouteTo
+      in: [ "Different Support Team", "Owner Team Member" ]
+  - name: remarks
+    label: Remarks
+    type: textarea

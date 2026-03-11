@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: todo-mcp-client
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: gpt-oss:20b
+    mcp:
+      client:
+        sse:
+          connections:
+            todo-server:
+              url: http://localhost:8081

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: todo-mcp
+  ai:
+    mcp:
+      server:
+        name: todo-mcp-server
+        version: 1.0.0
+
+server:
+  port: 8081
+
+logging:
+  level:
+    com.jinloes.todo: INFO

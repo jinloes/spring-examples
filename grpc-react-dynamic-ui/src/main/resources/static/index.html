@@ -54,7 +54,7 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-  const { useState, useCallback, useEffect } = React;
+  const { useState, useCallback, useEffect, useRef } = React;
 
   const PRESETS = [
     { label: "All Components", ids: "add-contact,select-produce,reroute-case" },
@@ -63,15 +63,16 @@
     { label: "Reroute Case", ids: "reroute-case" },
   ];
 
-  function isVisible(field, fieldValues) {
-    if (!field.visible) return true;
-    const { field: condField, equals, notEquals, in: inList, notIn } = field.visible;
-    const current = fieldValues[condField] ?? "";
-    if (equals !== undefined) return current === equals;
-    if (notEquals !== undefined) return current !== notEquals;
-    if (inList !== undefined) return inList.includes(current);
-    if (notIn !== undefined) return !notIn.includes(current);
-    return true;
+  async function postState(componentId, fieldValues) {
+    try {
+      const res = await fetch("/api/components/state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ componentId, fieldValues }),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) { /* ignore */ }
+    return null;
   }
 
   function initFieldValues(fields) {
@@ -96,11 +97,6 @@
         ))}
       </select>
     );
-  }
-
-  function ConditionBadge({ visible }) {
-    const op = visible.equals !== undefined ? `= "${visible.equals}"` : `≠ "${visible.notEquals}"`;
-    return <span className="badge badge-condition">visible when {visible.field} {op}</span>;
   }
 
   function FieldInput({ field, value, onChange }) {
@@ -158,11 +154,7 @@
   }
 
   function FieldItem({ field, fieldValues, onFieldChange }) {
-    const visible = isVisible(field, fieldValues);
     const value = fieldValues[field.name] ?? "";
-
-    if (!visible) return null;
-
     return (
       <div className="field-item">
         {field.type !== "checkbox" && (
@@ -171,19 +163,34 @@
         <FieldInput field={field} value={value} onChange={onFieldChange} />
         <div className="field-meta" style={{ marginTop: "0.4rem" }}>
           {field.required && <span className="badge badge-required">required</span>}
-          {field.visible && <ConditionBadge visible={field.visible} />}
         </div>
       </div>
     );
   }
 
-  function useFieldState(fields) {
-    const [fieldValues, setFieldValues] = useState(() => initFieldValues(fields));
-    useEffect(() => { setFieldValues(initFieldValues(fields)); }, [fields]);
+  function useFieldState(component) {
+    const [fieldValues, setFieldValues] = useState(() => initFieldValues(component.fields));
+    const [resolvedFields, setResolvedFields] = useState(component.fields);
+
+    useEffect(() => {
+      const initial = initFieldValues(component.fields);
+      setFieldValues(initial);
+      postState(component.componentId, initial).then(data => {
+        if (data) setResolvedFields(data.fields);
+      });
+    }, [component.componentId]);
+
     const handleFieldChange = useCallback((name, value) => {
-      setFieldValues(prev => ({ ...prev, [name]: value }));
-    }, []);
-    return [fieldValues, handleFieldChange];
+      setFieldValues(prev => {
+        const next = { ...prev, [name]: value };
+        postState(component.componentId, next).then(data => {
+          if (data) setResolvedFields(data.fields);
+        });
+        return next;
+      });
+    }, [component.componentId]);
+
+    return [fieldValues, handleFieldChange, resolvedFields];
   }
 
   function FieldList({ fields, fieldValues, onFieldChange }) {
@@ -208,19 +215,19 @@
   }
 
   function SelectProduceComponent({ component }) {
-    const [fieldValues, onFieldChange] = useFieldState(component.fields);
+    const [fieldValues, onFieldChange, resolvedFields] = useFieldState(component);
     return (
       <ComponentShell component={component}>
-        <FieldList fields={component.fields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
+        <FieldList fields={resolvedFields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
       </ComponentShell>
     );
   }
 
   function RerouteCaseComponent({ component }) {
-    const [fieldValues, onFieldChange] = useFieldState(component.fields);
+    const [fieldValues, onFieldChange, resolvedFields] = useFieldState(component);
     return (
       <ComponentShell component={component}>
-        <FieldList fields={component.fields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
+        <FieldList fields={resolvedFields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
         <div className="card-actions">
           <button className="btn-primary">Reroute</button>
           <button className="btn-secondary">Cancel</button>
@@ -230,10 +237,10 @@
   }
 
   function AddContactComponent({ component }) {
-    const [fieldValues, onFieldChange] = useFieldState(component.fields);
+    const [fieldValues, onFieldChange, resolvedFields] = useFieldState(component);
     return (
       <ComponentShell component={component}>
-        <FieldList fields={component.fields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
+        <FieldList fields={resolvedFields} fieldValues={fieldValues} onFieldChange={onFieldChange} />
         <div className="card-actions">
           <button className="btn-primary">Add Contact</button>
           <button className="btn-secondary">Cancel</button>

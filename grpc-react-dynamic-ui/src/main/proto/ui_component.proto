@@ -6,8 +6,32 @@ option java_outer_classname = "UiComponentProto";
 
 package uiComponent;
 
+// Drives a backend-defined UI. The backend owns component schemas (fields, types,
+// visibility rules) loaded from YAML. Clients fetch schemas once, then POST field
+// state on every change to receive only the currently visible fields — no visibility
+// logic lives in the client.
 service UiComponentService {
+  // Returns full component schemas including all fields and their visibility conditions.
+  // Called once on initial load; use ResolveState for subsequent field-change updates.
   rpc GetComponents (ComponentRequest) returns (ComponentsResponse);
+
+  // Evaluates visibility conditions server-side and returns only the fields that
+  // should be shown given the current fieldValues. Replaces client-side condition
+  // evaluation — the client renders whatever fields it receives.
+  rpc ResolveState (StateRequest) returns (StateResponse);
+}
+
+message StateRequest {
+  string componentId = 1;
+  // Current values of all fields in the component, keyed by field name.
+  map<string, string> fieldValues = 2;
+}
+
+message StateResponse {
+  string componentId = 1;
+  // Only the fields whose visibility conditions evaluate to true for the given
+  // fieldValues. Hidden fields are omitted entirely — not included as false.
+  repeated Field fields = 2;
 }
 
 message ComponentRequest {
@@ -18,46 +42,19 @@ message ComponentsResponse {
   repeated ComponentResponse components = 1;
 }
 
-message EqualsOperator {
-  string field = 1;
-  string value = 2;
-}
-
-message NotEqualsOperator {
-  string field = 1;
-  string value = 2;
-}
-
-message InOperator {
-  string field = 1;
-  repeated string values = 2;
-}
-
-message NotInOperator {
-  string field = 1;
-  repeated string values = 2;
-}
-
-message Condition {
-  oneof operator {
-    EqualsOperator equals = 1;
-    NotEqualsOperator notEquals = 2;
-    InOperator in = 3;
-    NotInOperator notIn = 4;
-  }
-}
-
+// A single UI field definition. Visibility conditions are intentionally absent —
+// they are server-internal logic stored in YAML config and evaluated in
+// UiComponentServiceImpl. Clients only ever receive already-resolved fields.
 message Field {
-  string name = 1;
-  string label = 2;
-  string type = 3;
-  repeated string values = 4;
+  string name = 1;            // unique field identifier within the component
+  string label = 2;           // human-readable label shown in the UI
+  string type = 3;            // input type: text, select, textarea, checkbox, button, password
+  repeated string values = 4; // options for select/checkbox, or button labels for button type
   bool required = 5;
-  optional Condition visible = 6;
 }
 
 message ComponentResponse {
   string componentId = 1;
-  string type = 2;
+  string type = 2;  // component type: form, card, button, etc.
   repeated Field fields = 3;
 }

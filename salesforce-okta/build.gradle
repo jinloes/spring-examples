@@ -1,0 +1,27 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testImplementation group: 'org.assertj', name: 'assertj-core'
+}
+
+test {
+    useJUnitPlatform()
+}

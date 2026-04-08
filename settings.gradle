@@ -10,5 +10,6 @@ include(
         ":grpc",
         ":grpc-react-dynamic-ui",
         ":todo-mcp:server",
-        ":todo-mcp:client"
+        ":todo-mcp:client",
+        ":salesforce-okta"
 )

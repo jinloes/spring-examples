@@ -11,5 +11,6 @@ include(
         ":grpc-react-dynamic-ui",
         ":todo-mcp:server",
         ":todo-mcp:client",
-        ":salesforce-okta"
+        ":salesforce-okta",
+        ":nextjs"
 )

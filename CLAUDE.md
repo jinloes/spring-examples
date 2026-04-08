@@ -59,9 +59,15 @@ Each top-level directory is a standalone example module:
 - Vavr 0.10.3
 - Apache Commons Lang3 3.17.0
 
+## Git
+
+- Do NOT auto-commit changes — only commit when explicitly asked
+- Do NOT include `Co-Authored-By` lines in commit messages
+
 ## Conventions
 
 - Each module is self-contained and independently runnable
+- Use Lombok where applicable — `@Slf4j` for logging, `@RequiredArgsConstructor` for constructor injection, `@Data`/`@Value` for simple POJOs (prefer records for immutable data)
 - Tests use JUnit Platform (`useJUnitPlatform()`)
 - New Gradle modules should be added to `settings.gradle`
 - **After all code changes**, run Spotless to enforce Google Java Format:

@@ -6,3 +6,6 @@ dependency-reduced-pom.xml
 .gradle
 **/build
 **/jmeter.log
+CLAUDE.local.md
+**/.next/
+**/node_modules/

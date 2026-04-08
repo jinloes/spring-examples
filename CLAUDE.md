@@ -32,9 +32,9 @@ Each top-level directory is a standalone example module:
 | `retry/` | Spring Retry (Maven) |
 | `springdoc-openapi/` | SpringDoc OpenAPI (Maven) |
 | `theta-sketch/` | Theta sketch / probabilistic data structures (Maven) |
-| `vertx/` | Vert.x integration (Gradle) |
 | `webflux/` | Spring WebFlux / reactive (Gradle) |
 | `salesforce-okta/` | Salesforce API integration via Okta JWT Bearer flow (Gradle) |
+| `nextjs/` | Spring Boot + Next.js hello world (Gradle + npm) |
 
 ## Build Systems
 

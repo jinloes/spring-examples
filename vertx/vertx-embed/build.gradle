@@ -1,9 +1,0 @@
-dependencies {
-    compile group: 'io.vertx', name: 'vertx-web', version: '3.3.3'
-    compile group: 'org.springframework.security', name: 'spring-security-jwt', version: '1.0.7.RELEASE'
-    compile group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version: '2.0.12.RELEASE'
-    compile group: 'org.springframework.cloud', name: 'spring-cloud-consul-config', version: '1.1.2.RELEASE'
-    compile group: 'org.springframework.cloud', name: 'spring-cloud-consul-core', version: '1.1.2.RELEASE'
-    compile group: 'org.springframework.cloud', name: 'spring-cloud-commons', version: '1.1.7.RELEASE'
-    compile group: 'com.ecwid.consul', name: 'consul-api', version: '1.2.1'
-}

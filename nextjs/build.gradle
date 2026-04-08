@@ -1,0 +1,10 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
+}
+
+dependencies {
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+}

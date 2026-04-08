@@ -9,8 +9,45 @@ version '1.0-SNAPSHOT'
 
 dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
 }
 
-test {
-    useJUnitPlatform()
+def installK6 = 'which k6 || brew install k6'
+def runK6 = "k6 run ${projectDir}/stress/load.js"
+def gradlew = "${rootProject.projectDir}/gradlew"
+
+def k6WithProfile = { String profile ->
+    return """
+        ${installK6}
+        ${gradlew} :loom-web:bootRun --args='--spring.profiles.active=${profile}' &
+        APP_PID=\$!
+        echo "Waiting for app to start (profile: ${profile})..."
+        until curl -sf http://localhost:8080/threads/info > /dev/null; do sleep 1; done
+        echo "App ready. Running k6..."
+        ${runK6}
+        kill \$APP_PID
+    """
+}
+
+tasks.register('k6Virtual', Exec) {
+    group = 'verification'
+    description = 'Boot with virtual threads profile and run k6 stress test'
+    commandLine 'sh', '-c', k6WithProfile('virtual')
+    ignoreExitValue = true
+}
+
+tasks.register('k6Platform', Exec) {
+    group = 'verification'
+    description = 'Boot with platform threads profile (500-thread cap) and run k6 stress test'
+    commandLine 'sh', '-c', k6WithProfile('platform')
+    ignoreExitValue = true
+}
+
+tasks.register('k6', Exec) {
+    group = 'verification'
+    description = 'Run k6 against an already-running loom-web app'
+    commandLine 'sh', '-c', "${installK6} && ${runK6}"
+    ignoreExitValue = true
 }

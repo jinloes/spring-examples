@@ -8,7 +8,6 @@ Each top-level directory is a standalone example module:
 
 | Module | Description |
 |--------|-------------|
-| `angular/` | Angular + Spring integration (Maven) |
 | `cloud-contract/` | Spring Cloud Contract consumer/producer (Maven) |
 | `djl/` | Deep Java Library (ML) integration (Gradle) |
 | `docker/` | Docker/containerization examples (Gradle + Maven) |
@@ -35,6 +34,7 @@ Each top-level directory is a standalone example module:
 | `theta-sketch/` | Theta sketch / probabilistic data structures (Maven) |
 | `vertx/` | Vert.x integration (Gradle) |
 | `webflux/` | Spring WebFlux / reactive (Gradle) |
+| `salesforce-okta/` | Salesforce API integration via Okta JWT Bearer flow (Gradle) |
 
 ## Build Systems
 
@@ -43,7 +43,7 @@ Each top-level directory is a standalone example module:
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
 
-- **Maven**: `angular`, `cloud-contract`, `docker`, `elasticsearch`, `eureka`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `springdoc-openapi`, `theta-sketch`
+- **Maven**: `cloud-contract`, `docker`, `elasticsearch`, `eureka`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `springdoc-openapi`, `theta-sketch`
   - Each has its own `pom.xml`
   - Run: `mvn -f <module>/pom.xml spring-boot:run`
 
@@ -64,3 +64,6 @@ Each top-level directory is a standalone example module:
 - Each module is self-contained and independently runnable
 - Tests use JUnit Platform (`useJUnitPlatform()`)
 - New Gradle modules should be added to `settings.gradle`
+- **After all code changes**, run Spotless to enforce Google Java Format:
+  - Single module: `./gradlew :<module>:spotlessApply`
+  - All modules: `./gradlew spotlessApply`

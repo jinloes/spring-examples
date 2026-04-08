@@ -1,0 +1,16 @@
+salesforce:
+  # Salesforce OAuth token endpoint
+  token-url: ${SALESFORCE_TOKEN_URL:https://login.salesforce.com/services/oauth2/token}
+  # Salesforce connected app client ID
+  client-id: ${SALESFORCE_CLIENT_ID}
+  # Audience — use test.salesforce.com for sandboxes, login.salesforce.com for prod
+  audience: ${SALESFORCE_AUDIENCE:https://test.salesforce.com}
+  # Suffix appended to the Okta email to form the Salesforce username (e.g. .qa, .uat)
+  username-suffix: ${SALESFORCE_USERNAME_SUFFIX:}
+  # RSA private key in PKCS8 PEM format (include full PEM with headers)
+  private-key: ${SALESFORCE_PRIVATE_KEY}
+
+server:
+  error:
+    include-message: always
+    include-binding-errors: always

@@ -66,6 +66,7 @@ Each top-level directory is a standalone example module:
 
 ## Conventions
 
+- Add comments for non-trivial logic — explain the *why*, not the *what*. Skip comments for self-evident code (getters, simple mappings, obvious conditionals)
 - Each module is self-contained and independently runnable
 - Use Lombok where applicable — `@Slf4j` for logging, `@RequiredArgsConstructor` for constructor injection, `@Data`/`@Value` for simple POJOs (prefer records for immutable data)
 - Tests use JUnit Platform (`useJUnitPlatform()`)

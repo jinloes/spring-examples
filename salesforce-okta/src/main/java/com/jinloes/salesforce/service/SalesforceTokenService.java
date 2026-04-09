@@ -9,21 +9,19 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 
 /**
- * Obtains a Salesforce user-context access token using the OAuth 2.0 JWT Bearer Flow (RFC 7523).
- *
- * <p>Flow:
- *
- * <ol>
- *   <li>Decode the Okta JWT to extract the user's email
- *   <li>Mint a signed JWT asserting that user's identity to Salesforce
- *   <li>POST to Salesforce token endpoint to get a user-context access token
- * </ol>
+ * Implements the OAuth 2.0 JWT Bearer Flow (RFC 7523): exchanges an Okta token for a Salesforce
+ * user-context access token by minting a signed JWT assertion.
  */
 @Service
 @RequiredArgsConstructor
@@ -35,12 +33,6 @@ public class SalesforceTokenService {
   private final SalesforceProperties properties;
   private final RestClient restClient;
 
-  /**
-   * Exchanges the provided Okta token for a Salesforce user-context access token.
-   *
-   * @param oktaToken the Bearer token issued by Okta
-   * @return Salesforce token response containing access_token and instance_url
-   */
   public SalesforceTokenResponse exchange(String oktaToken) {
     String email = extractEmailFromJwt(oktaToken);
     String salesforceUsername = email + properties.usernameSuffix();
@@ -59,11 +51,8 @@ public class SalesforceTokenService {
         .body(SalesforceTokenResponse.class);
   }
 
-  /**
-   * Decodes the Okta JWT (without verification — the token was already presented by the user and
-   * Salesforce will enforce its own authz) and extracts the email claim.
-   */
   private String extractEmailFromJwt(String jwt) {
+    // Decode without verification — Salesforce enforces its own authz on the assertion.
     String[] parts = jwt.split("\\.");
     byte[] payloadBytes = Base64.getUrlDecoder().decode(padBase64(parts[1]));
     String payload = new String(payloadBytes);
@@ -73,10 +62,6 @@ public class SalesforceTokenService {
     return payload.substring(start, end);
   }
 
-  /**
-   * Mints a short-lived JWT signed with the RSA private key that Salesforce will verify against the
-   * public key uploaded to the connected app.
-   */
   private String mintSalesforceJwt(String username) {
     return Jwts.builder()
         .issuer(properties.clientId())
@@ -89,14 +74,29 @@ public class SalesforceTokenService {
 
   private PrivateKey loadPrivateKey() {
     try {
-      String pem =
+      // Normalize: replace literal \n (common in env vars) and strip PEM headers/footers.
+      String stripped =
           properties
               .privateKey()
-              .replace("-----BEGIN PRIVATE KEY-----", "")
-              .replace("-----END PRIVATE KEY-----", "")
-              .replaceAll("\\s", "");
-      byte[] keyBytes = Base64.getDecoder().decode(pem);
-      return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
+              .replace("\\n", "\n")
+              .replaceAll("-----[^-]+-----", "")
+              .replaceAll("\\s+", "");
+      byte[] der = Base64.getDecoder().decode(stripped);
+
+      // Try PKCS8 first ("BEGIN PRIVATE KEY"). If it fails the key is PKCS1
+      // ("BEGIN RSA PRIVATE KEY") — wrap it in a PrivateKeyInfo envelope so Java
+      // can consume it via PKCS8EncodedKeySpec.
+      try {
+        return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(der));
+      } catch (Exception pkcs8Failure) {
+        PrivateKeyInfo pkInfo =
+            new PrivateKeyInfo(
+                new AlgorithmIdentifier(PKCSObjectIdentifiers.rsaEncryption),
+                RSAPrivateKey.getInstance(der));
+        return new JcaPEMKeyConverter().getPrivateKey(pkInfo);
+      }
+    } catch (IllegalStateException e) {
+      throw e;
     } catch (Exception e) {
       throw new IllegalStateException("Failed to load Salesforce private key", e);
     }

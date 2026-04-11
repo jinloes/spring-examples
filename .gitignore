@@ -9,3 +9,6 @@ dependency-reduced-pom.xml
 CLAUDE.local.md
 **/.next/
 **/node_modules/
+**/.docker-java-config/
+**/bin/
+**/obj/

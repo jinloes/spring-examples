@@ -2,17 +2,13 @@ package com.jinloes.jpa_multitenancy;
 
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
 
 @Slf4j
 public class TenantContext {
-  private static ThreadLocal<String> currentTenant = new ThreadLocal<>();
+  private static final ThreadLocal<String> currentTenant = new ThreadLocal<>();
 
   public static void setCurrentTenant(String tenant) {
-    log.debug("Setting tenant to " + tenant);
+    log.debug("Setting tenant to {}", tenant);
     currentTenant.set(tenant);
   }
 
@@ -21,6 +17,6 @@ public class TenantContext {
   }
 
   public static void clear() {
-    currentTenant.set(null);
+    currentTenant.remove();
   }
 }

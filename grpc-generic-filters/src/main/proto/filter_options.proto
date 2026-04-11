@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+import "google/protobuf/descriptor.proto";
+import "filters.proto";
+
+// java_multiple_files = false keeps the extension descriptor in the outer class,
+// which makes the registration reference (FilterOptionsProto.filterOpts) unambiguous.
+option java_multiple_files = false;
+option java_package = "com.jinloes.grpc.filter.proto";
+option java_outer_classname = "FilterOptionsProto";
+
+package filteropts;
+
+// ─── How to use ───────────────────────────────────────────────────────────────
+//
+// Annotate any scalar field in a proto message to declare it filterable:
+//
+//   string city = 2 [(filteropts.filter_opts) = {
+//     description: "City the person lives in",
+//     allowed_operators: [EQUALS, NOT_EQUALS, CONTAINS, IN, NOT_IN]
+//   }];
+//
+// Rules:
+//  - Fields without this annotation are NOT filterable.
+//  - Nested message fields (e.g. Address) should NOT carry the annotation;
+//    instead annotate the scalar leaves inside the nested message.
+//    The server traverses the descriptor tree automatically.
+//  - repeated scalar fields are not yet supported.
+//
+// Clients importing this file can read the constraints at the proto level:
+//  - In .proto source: the annotation is self-documenting.
+//  - Via gRPC server reflection / buf schema: the descriptor carries the option.
+//  - At runtime (Java): read via field.getOptions().getExtension(FilterOptionsProto.filterOpts).
+// ─────────────────────────────────────────────────────────────────────────────
+
+extend google.protobuf.FieldOptions {
+  // Applied to each filterable scalar field to declare its allowed operators.
+  // Field number 50001 is in the user-reserved range (50000–99999).
+  FilterFieldOptions filter_opts = 50001;
+}
+
+// Metadata attached to a filterable field.
+message FilterFieldOptions {
+  // The only operators permitted for this field in a FilterRequest.
+  // The server returns INVALID_ARGUMENT for any other operator.
+  repeated filters.FilterOperator allowed_operators = 1;
+  // Human-readable description of what this field represents and its filter semantics.
+  string description = 2;
+}

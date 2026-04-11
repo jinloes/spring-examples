@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: grpc-generic-filters
+
+grpc:
+  server:
+    port: 9092
+
+logging:
+  level:
+    com.jinloes.grpc.filter: INFO
+    net.devh.boot.grpc: DEBUG

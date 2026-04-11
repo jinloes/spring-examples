@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.jinloes.grpc.filter.proto";
+option java_outer_classname = "FiltersProto";
+
+package filters;
+
+// Supported comparison operators for field filters
+enum FilterOperator {
+  FILTER_OPERATOR_UNSPECIFIED = 0;
+  EQUALS = 1;
+  NOT_EQUALS = 2;
+  GREATER_THAN = 3;
+  LESS_THAN = 4;
+  GREATER_THAN_OR_EQUAL = 5;
+  LESS_THAN_OR_EQUAL = 6;
+  // String-specific: case-insensitive substring match
+  CONTAINS = 7;
+  STARTS_WITH = 8;
+  ENDS_WITH = 9;
+  // Membership checks; uses string_list_value (numeric fields compared via toString)
+  IN = 10;
+  NOT_IN = 11;
+}
+
+// How multiple FieldFilters in a FilterRequest are combined
+enum LogicalOperator {
+  // All filters must match (default)
+  AND = 0;
+  // At least one filter must match
+  OR = 1;
+}
+
+// A reusable list of string values for IN / NOT_IN operators.
+// When filtering numeric fields, provide the string representation (e.g. "30" for age 30).
+message StringList {
+  repeated string values = 1;
+}
+
+// A filter on a single field.
+//
+// field_path supports dot-notation to reach nested message fields:
+//   "name"           -> top-level field
+//   "address.city"   -> city inside a nested Address message
+//   "address.country.code" -> deeply nested field
+message FieldFilter {
+  string field_path = 1;
+  FilterOperator operator = 2;
+
+  // Exactly one value type should be set, matching the target field's type.
+  oneof value {
+    string string_value = 3;
+    // Use for int32 / int64 fields
+    int64 int_value = 4;
+    double double_value = 5;
+    bool bool_value = 6;
+    // Use for IN / NOT_IN operators
+    StringList string_list_value = 7;
+  }
+}
+
+// Request to filter a list of domain objects using one or more field filters.
+message FilterRequest {
+  repeated FieldFilter filters = 1;
+  // How to combine multiple filters — AND (default) or OR
+  LogicalOperator logical_operator = 2;
+}
+
+// Describes what one field accepts: its data type and the operators permitted on it.
+// Used internally by FilterCapabilityRegistry and surfaced via GET /api/persons/schema.
+message FieldFilterCapability {
+  // Dot-notation field path, matching FilterRequest.FieldFilter.field_path
+  string field_path = 1;
+  // Canonical data type (e.g. "string", "int32", "double", "bool")
+  string field_type = 2;
+  // The only operators the server will accept for this field.
+  // Sending any other operator returns INVALID_ARGUMENT.
+  repeated FilterOperator allowed_operators = 3;
+  // Human-readable description of what this field represents
+  string description = 4;
+}

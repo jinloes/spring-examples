@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+import "filters.proto";
+import "filter_options.proto";
+
+option java_multiple_files = true;
+option java_package = "com.jinloes.grpc.filter.proto";
+option java_outer_classname = "PersonProto";
+
+package person;
+
+// Example domain service — filters a list of Person records using generic field filters.
+// The allowed operators for each filterable field are declared inline via the
+// (filteropts.filter_opts) annotation, visible to any client that imports this file.
+service PersonFilterService {
+  rpc ListPersons(filters.FilterRequest) returns (PersonsResponse);
+}
+
+// Physical mailing address (nested inside Person).
+// Filterable leaf fields are annotated directly here; clients see them in the proto source.
+message Address {
+  string street = 1 [(filteropts.filter_opts) = {
+    description: "Street address",
+    allowed_operators: [EQUALS, CONTAINS, STARTS_WITH]
+  }];
+
+  string city = 2 [(filteropts.filter_opts) = {
+    description: "City",
+    allowed_operators: [EQUALS, NOT_EQUALS, CONTAINS, IN, NOT_IN]
+  }];
+
+  string state = 3 [(filteropts.filter_opts) = {
+    description: "State or province code",
+    allowed_operators: [EQUALS, NOT_EQUALS, IN, NOT_IN]
+  }];
+
+  string zip = 4 [(filteropts.filter_opts) = {
+    description: "Postal / ZIP code",
+    allowed_operators: [EQUALS, IN, NOT_IN]
+  }];
+
+  string country = 5 [(filteropts.filter_opts) = {
+    description: "ISO country code",
+    allowed_operators: [EQUALS, NOT_EQUALS, IN, NOT_IN]
+  }];
+}
+
+// Contact details (nested inside Person).
+message ContactInfo {
+  string email = 1 [(filteropts.filter_opts) = {
+    description: "Email address",
+    allowed_operators: [EQUALS, CONTAINS, STARTS_WITH, ENDS_WITH]
+  }];
+
+  string phone = 2 [(filteropts.filter_opts) = {
+    description: "Phone number",
+    allowed_operators: [EQUALS, STARTS_WITH]
+  }];
+}
+
+// A person record with nested Address and ContactInfo.
+//
+// Filterable fields (annotated below with their allowed operators):
+//   id, name, age, department, salary, active
+//   address.street, address.city, address.state, address.zip, address.country
+//   contact.email, contact.phone
+//
+// Non-annotated fields (address, contact, tags) are not directly filterable.
+// The server traverses into nested messages automatically — annotate the leaves.
+message Person {
+  string id = 1 [(filteropts.filter_opts) = {
+    description: "Unique person identifier",
+    allowed_operators: [EQUALS, IN, NOT_IN]
+  }];
+
+  string name = 2 [(filteropts.filter_opts) = {
+    description: "Full name",
+    allowed_operators: [EQUALS, NOT_EQUALS, CONTAINS, STARTS_WITH, ENDS_WITH, IN, NOT_IN]
+  }];
+
+  int32 age = 3 [(filteropts.filter_opts) = {
+    description: "Age in years (IN / NOT_IN use string representation, e.g. \"30\")",
+    allowed_operators: [EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, IN, NOT_IN]
+  }];
+
+  string department = 4 [(filteropts.filter_opts) = {
+    description: "Organisational department",
+    allowed_operators: [EQUALS, NOT_EQUALS, IN, NOT_IN]
+  }];
+
+  double salary = 5 [(filteropts.filter_opts) = {
+    description: "Annual salary",
+    allowed_operators: [EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL]
+  }];
+
+  // Booleans only make sense with equality — GREATER_THAN / CONTAINS etc. are excluded.
+  bool active = 6 [(filteropts.filter_opts) = {
+    description: "Whether the person is currently active",
+    allowed_operators: [EQUALS, NOT_EQUALS]
+  }];
+
+  // Nested messages: no annotation here; filterable leaves are annotated inside Address/ContactInfo.
+  Address address = 7;
+  ContactInfo contact = 8;
+  repeated string tags = 9;
+}
+
+message PersonsResponse {
+  repeated Person persons = 1;
+  int32 total_matched = 2;
+}

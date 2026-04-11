@@ -1,4 +1,5 @@
 include(
+        ":elasticsearch",
         ":djl",
         ":http2",
         ":jpa-multitenancy",
@@ -9,6 +10,7 @@ include(
         ":webflux",
         ":grpc",
         ":grpc-react-dynamic-ui",
+        ":grpc-generic-filters",
         ":todo-mcp:server",
         ":todo-mcp:client",
         ":salesforce-okta",

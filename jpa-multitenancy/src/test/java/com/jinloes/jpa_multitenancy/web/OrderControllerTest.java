@@ -1,6 +1,5 @@
 package com.jinloes.jpa_multitenancy.web;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jinloes.jpa_multitenancy.TenantContext;
@@ -8,29 +7,30 @@ import com.jinloes.jpa_multitenancy.data.OrderRepository;
 import com.jinloes.jpa_multitenancy.model.Order;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
 @Testcontainers
 class OrderControllerTest {
 
   @Container
-  private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:13")
-      .withDatabaseName("testdb")
-      .withUsername("test")
-      .withPassword("test");
+  private static final PostgreSQLContainer postgresContainer =
+      new PostgreSQLContainer("postgres:13")
+          .withDatabaseName("testdb")
+          .withUsername("test")
+          .withPassword("test");
 
   @DynamicPropertySource
   static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -40,20 +40,17 @@ class OrderControllerTest {
     registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
   }
 
-  @Autowired
-  private OrderRepository orderRepository;
+  static final String CUSTOMER_1 = "98b67afd-0d75-4c88-8d81-71821688f345";
+  static final String CUSTOMER_2 = "98b67afd-0d75-4c88-8d81-71821688f346";
 
-  @Autowired
-  private WebTestClient client;
-
-  private String customerId;
-  private String customer2Id;
+  @LocalServerPort int port;
+  @Autowired OrderRepository orderRepository;
+  WebTestClient client;
 
   @BeforeEach
   void setUp() {
-    customerId = "98b67afd-0d75-4c88-8d81-71821688f345";
-    customer2Id = "98b67afd-0d75-4c88-8d81-71821688f346";
-    TenantContext.setCurrentTenant(customerId);
+    client = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+    TenantContext.setCurrentTenant(CUSTOMER_1);
     orderRepository.deleteAll();
   }
 
@@ -62,41 +59,52 @@ class OrderControllerTest {
     TenantContext.clear();
   }
 
-  @Test
-  void createOrder() {
-    Order order = new Order()
-        .setName("Order 1")
-        .setCustomerId(customerId);
-
-    client.post()
+  Order postOrder(String tenantId, String name) {
+    return client
+        .post()
         .uri("/orders")
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_JSON)
-        .header("X-Tenant", customerId)
-        .body(BodyInserters.fromValue(order))
+        .header("X-Tenant", tenantId)
+        .body(BodyInserters.fromValue(new Order().setName(name).setCustomerId(tenantId)))
         .exchange()
         .expectStatus()
         .isCreated()
         .expectBody(Order.class)
-        .consumeWith(response -> {
-          Order actual = response.getResponseBody();
-          assertThat(actual)
-              .usingRecursiveComparison().ignoringFields("id")
-              .isEqualTo(order);
-          assertThat(actual.getId())
-              .isNotNull();
+        .returnResult()
+        .getResponseBody();
+  }
 
-          TenantContext.setCurrentTenant(customerId);
-          assertThat(orderRepository.findById(actual.getId()))
-              .contains(actual);
+  @Nested
+  class CreateOrder {
 
-          TenantContext.setCurrentTenant(customer2Id);
-          assertThat(orderRepository.findById(actual.getId()))
-              .isEmpty();
-        });
+    @Test
+    void create_returnsCreatedOrderWithId() {
+      Order created = postOrder(CUSTOMER_1, "Order 1");
 
-    TenantContext.setCurrentTenant(customer2Id);
-    assertThat(orderRepository.findAll())
-        .isEmpty();
+      assertThat(created.getId()).isNotNull();
+      assertThat(created.getName()).isEqualTo("Order 1");
+    }
+  }
+
+  @Nested
+  class TenantIsolation {
+
+    @Test
+    void order_isVisibleToOwningTenant() {
+      Order created = postOrder(CUSTOMER_1, "Order 1");
+
+      TenantContext.setCurrentTenant(CUSTOMER_1);
+      assertThat(orderRepository.findById(created.getId())).contains(created);
+    }
+
+    @Test
+    void order_isNotVisibleToOtherTenant() {
+      Order created = postOrder(CUSTOMER_1, "Order 1");
+
+      TenantContext.setCurrentTenant(CUSTOMER_2);
+      assertThat(orderRepository.findById(created.getId())).isEmpty();
+      assertThat(orderRepository.findAll()).isEmpty();
+    }
   }
 }

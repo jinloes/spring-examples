@@ -1,3 +1,3 @@
-elasticsearch:
-  cluster-name: 638283992931:jon-alarm-test
-  cluster-nodes: search-jon-alarm-test-jberstbrwvssyxkfonq3hz3ws4.eu-west-2.es.amazonaws.com:9300
+spring:
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URI:http://localhost:9200}

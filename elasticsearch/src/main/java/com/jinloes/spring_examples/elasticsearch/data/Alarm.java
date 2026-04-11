@@ -1,27 +1,16 @@
 package com.jinloes.spring_examples.elasticsearch.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(indexName = "alarm")
 public class Alarm {
-  private int id;
+  @Id private String id;
   private int org;
-
-  public Alarm(int id, int org) {
-    this.id = id;
-    this.org = org;
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public int getOrg() {
-    return org;
-  }
-
-  public void setOrg(int org) {
-    this.org = org;
-  }
 }

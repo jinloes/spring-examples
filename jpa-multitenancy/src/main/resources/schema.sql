@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS orders (
     id UUID NOT NULL,
     name TEXT NOT NULL,
-    customer_id UUID NOT NULL,
+    customer_id TEXT NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -22,5 +22,3 @@ CREATE TABLE IF NOT EXISTS "98b67afd-0d75-4c88-8d81-71821688f346".orders (
     customer_id TEXT NOT NULL,
     PRIMARY KEY (id)
 );
-
-

@@ -7,10 +7,11 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
+import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 
 @Slf4j
-public class TenantConnectionProvider implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
+public class TenantConnectionProvider
+    implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
 
   private final DataSource dataSource;
 
@@ -43,7 +44,8 @@ public class TenantConnectionProvider implements MultiTenantConnectionProvider<S
   }
 
   @Override
-  public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
+  public void releaseConnection(String tenantIdentifier, Connection connection)
+      throws SQLException {
     log.debug("Releasing connection for a tenant (tenantIdentifier={})", tenantIdentifier);
     releaseAnyConnection(connection);
   }

@@ -1,15 +1,11 @@
 plugins {
-    id 'org.springframework.boot' version '3.5.0'
+    id 'org.springframework.boot' version '4.0.2'
     id 'io.spring.dependency-management' apply true
     id 'java'
 }
 
 group 'com.jinloes'
 version '1.0-SNAPSHOT'
-
-ext {
-    set('testcontainers.version', '1.21.1')
-}
 
 dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -23,10 +19,6 @@ dependencies {
     testImplementation group: 'org.assertj', name: 'assertj-core'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-webflux'
-    testImplementation group: 'org.testcontainers', name: 'junit-jupiter'
-    testImplementation group: 'org.testcontainers', name: 'postgresql'
-}
-
-test {
-    useJUnitPlatform()
+    testImplementation group: 'org.testcontainers', name: 'testcontainers-junit-jupiter'
+    testImplementation group: 'org.testcontainers', name: 'testcontainers-postgresql'
 }

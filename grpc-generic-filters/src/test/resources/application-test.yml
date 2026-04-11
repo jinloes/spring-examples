@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: grpc-generic-filters-test
+
+grpc:
+  server:
+    in-process-name: test
+  client:
+    inProcess:
+      address: in-process:test
+    grpc-filter-server:
+      address: static://localhost:9092
+      negotiation-type: plaintext

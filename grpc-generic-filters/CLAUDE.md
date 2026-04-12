@@ -21,19 +21,30 @@ grpcurl / gRPC client
     ▼
 PersonFilterServiceImpl
     │
-    ├── FilterRequestValidator  (checks field + operator against FilterCapabilityRegistry)
-    └── FilterEngine            (generic <T extends Message> dot-notation traversal)
+    ├── FilterRequestValidator     (checks field + operator against FilterCapabilityRegistry)
+    ├── InMemoryPersonRepository   (owns FilterEngine<PersonModel>  + FieldExtractorBuilder)
+    └── AlternativePersonRepository(owns FilterEngine<PersonRecord> + FieldExtractorBuilder)
 ```
 
 **`FilterCapabilityRegistry`** — walks the `Person` proto descriptor at startup; any field
 annotated with `(filteropts.filter_opts)` in `person.proto` becomes filterable automatically.
-No Java change is needed when adding a new filterable field — only a proto annotation.
+
+**Backends** — the `backend` field in `FilterRequest` (enum `Backend`) selects which repository
+handles the request. Each backend stores its own internal model with its own field names and owns
+a dedicated `FilterEngine<T>` wired with a `FieldExtractorBuilder` that maps proto field paths
+(via proto-generated field-number constants) to internal accessor functions. Path resolution is
+validated against the proto descriptor at startup; unknown field numbers fail immediately.
+
+| Backend enum value | Repository | Internal model |
+|--------------------|------------|----------------|
+| `IN_MEMORY` (default) | `InMemoryPersonRepository` | `PersonModel` — field names mirror the proto |
+| `ALTERNATIVE` | `AlternativePersonRepository` | `PersonRecord` — different field names (`fullName`, `yearsOld`, `team`, …) |
 
 ## Proto files
 
 | File | Purpose |
 |------|---------|
-| `filters.proto` | `FilterRequest`, `FieldFilter`, `FilterOperator`, `LogicalOperator`, `FieldFilterCapability` |
+| `filters.proto` | `FilterRequest`, `FieldFilter`, `FilterOperator`, `LogicalOperator`, `Backend`, `FieldFilterCapability` |
 | `filter_options.proto` | Custom `FieldOptions` extension that declares allowed operators per field |
 | `person.proto` | `PersonFilterService` RPC + `Person` model with per-field operator annotations |
 
@@ -62,10 +73,20 @@ IN / NOT_IN for numeric fields use string representation (e.g. `"30"` for age 30
 
 Requires [grpcurl](https://github.com/fullstorydev/grpcurl) and the server running on port 9092.
 
-### List all persons (no filters)
+The `"backend"` field is optional; it defaults to `IN_MEMORY` when omitted.
+
+### List all persons (no filters, default backend)
 ```bash
 grpcurl -plaintext \
   -d '{}' \
+  localhost:9092 \
+  person.PersonFilterService/ListPersons
+```
+
+### List all persons from the alternative backend
+```bash
+grpcurl -plaintext \
+  -d '{ "backend": "ALTERNATIVE" }' \
   localhost:9092 \
   person.PersonFilterService/ListPersons
 ```
@@ -77,6 +98,19 @@ grpcurl -plaintext \
     "filters": [
       { "fieldPath": "address.city", "operator": "EQUALS", "stringValue": "San Francisco" }
     ]
+  }' \
+  localhost:9092 \
+  person.PersonFilterService/ListPersons
+```
+
+### Filter by city on the alternative backend
+```bash
+grpcurl -plaintext \
+  -d '{
+    "filters": [
+      { "fieldPath": "address.city", "operator": "EQUALS", "stringValue": "San Francisco" }
+    ],
+    "backend": "ALTERNATIVE"
   }' \
   localhost:9092 \
   person.PersonFilterService/ListPersons
@@ -127,6 +161,22 @@ grpcurl -plaintext \
   person.PersonFilterService/ListPersons
 ```
 
+### Same query on the alternative backend
+```bash
+grpcurl -plaintext \
+  -d '{
+    "filters": [
+      { "fieldPath": "department", "operator": "EQUALS",       "stringValue": "Engineering" },
+      { "fieldPath": "salary",     "operator": "GREATER_THAN", "doubleValue": 90000 },
+      { "fieldPath": "active",     "operator": "EQUALS",       "boolValue": true }
+    ],
+    "logicalOperator": "AND",
+    "backend": "ALTERNATIVE"
+  }' \
+  localhost:9092 \
+  person.PersonFilterService/ListPersons
+```
+
 ### Name substring match (case-insensitive CONTAINS)
 ```bash
 grpcurl -plaintext \
@@ -170,7 +220,10 @@ grpcurl -plaintext \
 1. Annotate the field in `person.proto` (or a nested message) with `(filteropts.filter_opts)`,
    listing `allowed_operators` and a `description`.
 2. Run `./gradlew :grpc-generic-filters:generateProto` (or `bootRun` / `test`, which trigger it).
-3. No Java changes required — `FilterCapabilityRegistry` picks up the annotation automatically.
+3. Bind the new field in **each backend's** `FieldExtractorBuilder`:
+   - `InMemoryPersonRepository.EXTRACTOR` — add `.bind(Person.NEW_FIELD_NUMBER, PersonModel::newField)`
+   - `AlternativePersonRepository` — add the equivalent bind for its internal model accessor
+4. `FilterCapabilityRegistry` picks up the proto annotation automatically; no other Java changes required.
 
 ## Tests
 
@@ -180,4 +233,8 @@ grpcurl -plaintext \
 
 Tests use an in-process gRPC server (no real network). See:
 - `PersonFilterServiceImplTest` — integration tests via the gRPC stub
+- `FilterEngineTest` — unit tests for filter evaluation logic
 - `FilterCapabilityRegistryTest` — unit tests for descriptor-derived capabilities
+- `BackendFieldMappingTest` — parameterized test verifying every filterable proto field has a
+  mapping in both `InMemoryPersonRepository` and `AlternativePersonRepository`; adding a proto
+  annotation without binding it in a backend will fail these tests immediately

@@ -60,11 +60,21 @@ message FieldFilter {
   }
 }
 
+// Selects which backend data source to query.
+enum Backend {
+  // Default in-memory store (field names match the proto)
+  IN_MEMORY = 0;
+  // Alternative backend whose internal model uses different field names
+  ALTERNATIVE = 1;
+}
+
 // Request to filter a list of domain objects using one or more field filters.
 message FilterRequest {
   repeated FieldFilter filters = 1;
   // How to combine multiple filters — AND (default) or OR
   LogicalOperator logical_operator = 2;
+  // Which backend to query (defaults to IN_MEMORY)
+  Backend backend = 3;
 }
 
 // Describes what one field accepts: its data type and the operators permitted on it.

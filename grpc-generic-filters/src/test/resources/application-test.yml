@@ -5,6 +5,8 @@ spring:
 grpc:
   server:
     in-process-name: test
+    # Disable the real Netty server so tests run fully in-process
+    port: -1
   client:
     inProcess:
       address: in-process:test

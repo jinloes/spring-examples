@@ -1,6 +1,6 @@
 package com.jinloes.grpc.filter.service;
 
-import com.jinloes.grpc.filter.engine.FilterEngine;
+import com.jinloes.grpc.filter.proto.Backend;
 import com.jinloes.grpc.filter.proto.FilterRequest;
 import com.jinloes.grpc.filter.proto.Person;
 import com.jinloes.grpc.filter.proto.PersonFilterServiceGrpc;
@@ -11,31 +11,43 @@ import com.jinloes.grpc.filter.validation.InvalidFilterException;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @GrpcService
-@RequiredArgsConstructor
 @Slf4j
 public class PersonFilterServiceImpl extends PersonFilterServiceGrpc.PersonFilterServiceImplBase {
 
-  private final PersonRepository repository;
-  private final FilterEngine filterEngine;
+  private final Map<Backend, PersonRepository> repositories;
   private final FilterRequestValidator validator;
+
+  public PersonFilterServiceImpl(
+      @Qualifier("inMemory") PersonRepository inMemory,
+      @Qualifier("alternative") PersonRepository alternative,
+      FilterRequestValidator validator) {
+    this.repositories =
+        Map.of(
+            Backend.IN_MEMORY, inMemory,
+            Backend.ALTERNATIVE, alternative);
+    this.validator = validator;
+  }
 
   @Override
   public void listPersons(FilterRequest request, StreamObserver<PersonsResponse> responseObserver) {
     log.info(
-        "ListPersons: {} filter(s), operator={}",
+        "ListPersons: {} filter(s), operator={}, backend={}",
         request.getFiltersCount(),
-        request.getLogicalOperator());
+        request.getLogicalOperator(),
+        request.getBackend());
 
     try {
       validator.validate(request);
 
-      List<Person> all = repository.findAll();
-      List<Person> matched = filterEngine.apply(all, request);
+      PersonRepository repository =
+          repositories.getOrDefault(request.getBackend(), repositories.get(Backend.IN_MEMORY));
+      List<Person> matched = repository.filter(request);
 
       PersonsResponse response =
           PersonsResponse.newBuilder()
@@ -50,7 +62,7 @@ public class PersonFilterServiceImpl extends PersonFilterServiceGrpc.PersonFilte
       responseObserver.onError(
           Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
     } catch (IllegalArgumentException e) {
-      // Unknown field path encountered during filter engine traversal
+      // Unknown field path encountered during filtering
       responseObserver.onError(
           Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
     } catch (UnsupportedOperationException e) {

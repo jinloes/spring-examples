@@ -1,36 +1,35 @@
 package com.jinloes.grpc.filter.engine;
 
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.Message;
 import com.jinloes.grpc.filter.proto.FieldFilter;
 import com.jinloes.grpc.filter.proto.FilterRequest;
 import com.jinloes.grpc.filter.proto.LogicalOperator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 /**
- * Evaluates {@link FilterRequest} predicates against lists of protobuf {@link Message} objects.
+ * Evaluates {@link FilterRequest} predicates against a list of backend-specific records.
  *
- * <p>Field paths support dot-notation to traverse nested messages:
+ * <p>Field access is delegated to a {@link FieldExtractor} supplied at construction time, so the
+ * engine itself is completely independent of any particular data model or naming convention. Each
+ * backend instantiates its own {@code FilterEngine} with the extractor that knows how to map proto
+ * field paths to its own internal fields.
  *
- * <pre>
- *   "name"           → top-level field
- *   "address.city"   → city inside a nested Address message
- * </pre>
- *
- * <p>Numeric fields (int32/int64/double) can be targeted with IN / NOT_IN by providing their string
- * representation in the {@code string_list_value} (e.g. "30" for age 30).
+ * @param <T> the internal record type of the backend
  */
-@Component
 @Slf4j
-public class FilterEngine {
+public class FilterEngine<T> {
+
+  private final FieldExtractor<T> extractor;
+
+  public FilterEngine(FieldExtractor<T> extractor) {
+    this.extractor = extractor;
+  }
 
   /**
    * Returns the subset of {@code items} that satisfy all (AND) or any (OR) filters in {@code
    * request}. Returns all items when the filter list is empty.
    */
-  public <T extends Message> List<T> apply(List<T> items, FilterRequest request) {
+  public List<T> apply(List<T> items, FilterRequest request) {
     if (request.getFiltersList().isEmpty()) {
       log.debug("No filters specified — returning all {} item(s)", items.size());
       return items;
@@ -47,17 +46,17 @@ public class FilterEngine {
     return result;
   }
 
-  private boolean evaluate(Message message, FilterRequest request) {
+  private boolean evaluate(T item, FilterRequest request) {
     List<FieldFilter> filters = request.getFiltersList();
     if (request.getLogicalOperator() == LogicalOperator.OR) {
-      return filters.stream().anyMatch(f -> matchesFilter(message, f));
+      return filters.stream().anyMatch(f -> matchesFilter(item, f));
     }
     // Default: AND — every filter must match
-    return filters.stream().allMatch(f -> matchesFilter(message, f));
+    return filters.stream().allMatch(f -> matchesFilter(item, f));
   }
 
-  private boolean matchesFilter(Message message, FieldFilter filter) {
-    Object value = getFieldValue(message, filter.getFieldPath());
+  private boolean matchesFilter(T item, FieldFilter filter) {
+    Object value = extractor.getField(item, filter.getFieldPath());
     return switch (filter.getOperator()) {
       case EQUALS -> checkEquals(value, filter);
       case NOT_EQUALS -> !checkEquals(value, filter);
@@ -74,37 +73,6 @@ public class FilterEngine {
           throw new UnsupportedOperationException(
               "Unsupported filter operator: %s".formatted(filter.getOperator()));
     };
-  }
-
-  /**
-   * Traverses the protobuf message descriptor by dot-separated field name segments. Each segment
-   * must name a field that exists on the current message type; intermediate segments must be nested
-   * message fields.
-   */
-  private Object getFieldValue(Message message, String fieldPath) {
-    String[] parts = fieldPath.split("\\.", 2);
-    String fieldName = parts[0];
-
-    FieldDescriptor descriptor = message.getDescriptorForType().findFieldByName(fieldName);
-    if (descriptor == null) {
-      throw new IllegalArgumentException(
-          "Field '%s' not found on type '%s'"
-              .formatted(fieldName, message.getDescriptorForType().getName()));
-    }
-
-    Object value = message.getField(descriptor);
-
-    if (parts.length == 1) {
-      return value;
-    }
-
-    // Recurse into the nested message for the remaining path
-    if (value instanceof Message nested) {
-      return getFieldValue(nested, parts[1]);
-    }
-    throw new IllegalArgumentException(
-        "Field '%s' is not a nested message; cannot traverse to '%s'"
-            .formatted(fieldName, parts[1]));
   }
 
   private boolean checkEquals(Object fieldValue, FieldFilter filter) {

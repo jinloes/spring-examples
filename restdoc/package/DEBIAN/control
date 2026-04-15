@@ -1,8 +1,0 @@
-Package: jon-deb-test
-Architecture: all
-Maintainer: Jonathan Inloes
-Depends: openjdk-8-jre
-Priority: optional
-Version: 1.0
-Description: Learning how to create deb packages!
-

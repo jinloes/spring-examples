@@ -1,0 +1,35 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.2'
+    id 'io.spring.dependency-management' version '1.1.7' apply true
+    id 'java'
+    // Adds openapi3 / openapi2 tasks that generate specs from REST Docs snippets
+    id 'com.epages.restdocs-api-spec' version '0.19.4'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    // Adds resource() snippet; the openapi3 task reads these to build the spec
+    testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
+}
+
+openapi3 {
+    server = 'http://localhost:8080'
+    title = 'Bank API'
+    version = '1.0'
+    format = 'yaml'
+    outputFileNamePrefix = 'openapi'
+    outputDirectory = 'build/api-spec'
+}
+
+test {
+    useJUnitPlatform()
+}

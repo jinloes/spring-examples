@@ -22,15 +22,13 @@ Each top-level directory is a standalone example module:
 | `jwt-common/` | JWT shared library (Gradle) |
 | `kafka/` | Kafka integration (Maven) |
 | `loom-web/` | Project Loom virtual threads (Gradle) |
+| `api-doc/` | API documentation: Springdoc (annotation-driven) and REST Docs → OpenAPI (test-driven) (Gradle) |
 | `oauth2/` | OAuth2 examples (Maven) |
-| `openapi/` | OpenAPI/Swagger (Gradle) |
 | `pubsub/` | Pub/Sub messaging (Maven) |
 | `rabbitmq-websockets/` | RabbitMQ + WebSockets (Gradle) |
 | `rate-limiting/` | Rate limiting examples (Gradle) |
 | `react/` | React + Spring integration (Maven) |
-| `restdoc/` | Spring REST Docs (Gradle) |
 | `retry/` | Spring Retry (Maven) |
-| `springdoc-openapi/` | SpringDoc OpenAPI (Maven) |
 | `theta-sketch/` | Theta sketch / probabilistic data structures (Maven) |
 | `webflux/` | Spring WebFlux / reactive (Gradle) |
 | `salesforce-okta/` | Salesforce API integration via Okta JWT Bearer flow (Gradle) |
@@ -38,12 +36,12 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-- **Gradle** (multi-module): `djl`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `openapi`, `rate-limiting`, `webflux`, `grpc`, `grpc-react-dynamic-components`, `rabbitmq-websockets`, `restdoc`, `vertx`, `service-discovery`
+- **Gradle** (multi-module): `api-doc`, `djl`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `rate-limiting`, `webflux`, `grpc`, `grpc-react-dynamic-components`, `rabbitmq-websockets`, `service-discovery`
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
 
-- **Maven**: `cloud-contract`, `docker`, `elasticsearch`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `springdoc-openapi`, `theta-sketch`
+- **Maven**: `cloud-contract`, `docker`, `elasticsearch`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `theta-sketch`
   - Each has its own `pom.xml`
   - Run: `mvn -f <module>/pom.xml spring-boot:run`
 

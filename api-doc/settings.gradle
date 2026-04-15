@@ -1,0 +1,2 @@
+rootProject.name = 'api-doc'
+include(':openapi', ':restdoc')

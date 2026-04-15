@@ -1,7 +1,0 @@
-spring:
-  graphql:
-    schema:
-      printer:
-        enabled: true
-    graphiql:
-      enabled: true

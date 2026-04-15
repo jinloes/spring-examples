@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: redis-websocket
+  data:
+    redis:
+      host: localhost
+      port: 6379

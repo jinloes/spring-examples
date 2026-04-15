@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '3.4.2'
     id 'io.spring.dependency-management' apply true
     id 'java'
+    id 'de.undercouch.download' version '5.6.0'
 }
 
 group 'com.jinloes'
@@ -18,4 +19,44 @@ dependencies {
     annotationProcessor group: 'org.projectlombok', name: 'lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+// ---------------------------------------------------------------------------
+// Model download task
+// ---------------------------------------------------------------------------
+// Downloads the CodeBERTa-language-id model files from HuggingFace Hub into
+// ~/.djl.ai/CodeBERTa-language-id (the default path used by DjlService).
+//
+// Usage:
+//   ./gradlew :djl:downloadModel
+//
+// Files are skipped if they already exist (overwrite = false).
+// ---------------------------------------------------------------------------
+def modelDir = "${System.getProperty('user.home')}/.djl.ai/CodeBERTa-language-id"
+def hfBase   = 'https://huggingface.co/huggingface/CodeBERTa-language-id/resolve/main'
+
+def modelFiles = [
+    'config.json',
+    'merges.txt',
+    'special_tokens_map.json',
+    'tokenizer_config.json',
+    'vocab.json',
+    'pytorch_model.bin',
+]
+
+tasks.register('downloadModel') {
+    group       = 'djl'
+    description = 'Download CodeBERTa-language-id model files from HuggingFace Hub.'
+
+    doFirst {
+        mkdir modelDir
+    }
+
+    modelFiles.each { filename ->
+        dependsOn tasks.register("download_${filename.replace('.', '_')}", Download) {
+            src      "${hfBase}/${filename}"
+            dest     file("${modelDir}/${filename}")
+            overwrite false
+        }
+    }
 }

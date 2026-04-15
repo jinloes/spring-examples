@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: kafka-messaging
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: messaging-group
+      auto-offset-reset: earliest

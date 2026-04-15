@@ -1,0 +1,2 @@
+rootProject.name = 'messaging'
+include(':kafka', ':pubsub', ':redis')

@@ -13,9 +13,9 @@ Each top-level directory is a standalone example module:
 | `elasticsearch/` | Elasticsearch integration (Gradle) |
 | `service-discovery/` | Service discovery examples: Kubernetes DNS, Consul, Spring Cloud Kubernetes (Gradle) |
 | `graphql/` | GraphQL with Spring — queries, mutations, @BatchMapping N+1 prevention (Gradle) |
-| `grpc/` | gRPC API with Spring (Gradle) |
-| `grpc-react-dynamic-components/` | gRPC with React dynamic UI (Gradle) |
-| `grpc-generic-filters/` | Protobuf-driven generic field filtering over gRPC (Gradle) |
+| `grpc/hello-world/` | All four gRPC patterns — unary, server/client/bidirectional streaming (Gradle) |
+| `grpc/generic-filters/` | Protobuf-driven generic field filtering over gRPC (Gradle) |
+| `grpc/react-dynamic-components/` | gRPC + React backend-driven dynamic UI (Gradle) |
 | `helm/` | Helm chart examples (Maven) |
 | `http2/` | HTTP/2 with Spring (Gradle) |
 | `jpa-multitenancy/` | JPA multi-tenancy patterns (Gradle) |
@@ -27,7 +27,7 @@ Each top-level directory is a standalone example module:
 | `rate-limiting/` | Rate limiting examples (Gradle) |
 | `react/` | React + Spring integration (Maven) |
 | `retry/` | Spring Retry (Maven) |
-| `theta-sketch/` | Theta sketch / probabilistic data structures (Maven) |
+| `datasketches/` | Probabilistic analytics API — Theta, HLL, Quantiles, Frequency sketches (Gradle) |
 | `webflux/` | Spring WebFlux / reactive (Gradle) |
 | `salesforce-okta/` | Salesforce API integration via Okta JWT Bearer flow (Gradle) |
 | `nextjs/` | Spring Boot + Next.js hello world (Gradle + npm) |
@@ -35,12 +35,12 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-- **Gradle** (multi-module): `api-doc`, `djl`, `elasticsearch`, `graphql`, `grpc`, `grpc-generic-filters`, `grpc-react-dynamic-components`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `todo-mcp`, `webflux`
+- **Gradle** (multi-module): `api-doc`, `datasketches`, `djl`, `elasticsearch`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `todo-mcp`, `webflux`
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
 
-- **Maven**: `docker`, `helm`, `oauth2`, `react`, `retry`, `theta-sketch`
+- **Maven**: `docker`, `helm`, `oauth2`, `react`, `retry`
   - Each has its own `pom.xml`
   - Run: `mvn -f <module>/pom.xml spring-boot:run`
 

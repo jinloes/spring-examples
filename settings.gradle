@@ -13,6 +13,7 @@ include(
         ":rate-limiting",
         ":webflux",
         ":grpc",
+        ":graphql",
         ":grpc-react-dynamic-components",
         ":grpc-generic-filters",
         ":todo-mcp:server",

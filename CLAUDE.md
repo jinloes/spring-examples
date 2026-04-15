@@ -12,7 +12,7 @@ Each top-level directory is a standalone example module:
 | `docker/` | Docker/containerization examples (Gradle + Maven) |
 | `elasticsearch/` | Elasticsearch integration (Gradle) |
 | `service-discovery/` | Service discovery examples: Kubernetes DNS, Consul, Spring Cloud Kubernetes (Gradle) |
-| `graphql/` | GraphQL with Spring (Maven) |
+| `graphql/` | GraphQL with Spring — queries, mutations, @BatchMapping N+1 prevention (Gradle) |
 | `grpc/` | gRPC API with Spring (Gradle) |
 | `grpc-react-dynamic-components/` | gRPC with React dynamic UI (Gradle) |
 | `grpc-generic-filters/` | Protobuf-driven generic field filtering over gRPC (Gradle) |
@@ -35,12 +35,12 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-- **Gradle** (multi-module): `api-doc`, `djl`, `elasticsearch`, `grpc`, `grpc-generic-filters`, `grpc-react-dynamic-components`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `todo-mcp`, `webflux`
+- **Gradle** (multi-module): `api-doc`, `djl`, `elasticsearch`, `graphql`, `grpc`, `grpc-generic-filters`, `grpc-react-dynamic-components`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `todo-mcp`, `webflux`
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
 
-- **Maven**: `docker`, `graphql`, `helm`, `oauth2`, `react`, `retry`, `theta-sketch`
+- **Maven**: `docker`, `helm`, `oauth2`, `react`, `retry`, `theta-sketch`
   - Each has its own `pom.xml`
   - Run: `mvn -f <module>/pom.xml spring-boot:run`
 

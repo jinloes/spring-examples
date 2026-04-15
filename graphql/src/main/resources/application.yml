@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: graphql
+  graphql:
+    graphiql:
+      enabled: true  # interactive playground at /graphiql
+    schema:
+      printer:
+        enabled: true  # prints the resolved schema on startup

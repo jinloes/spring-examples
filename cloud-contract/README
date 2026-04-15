@@ -1,3 +1,0 @@
-Testing out spring cloud contract.
-Tried normal and open API extensions.
-Could not get cloud contract stub generation to work with open API. Maybe the plugin doesn't support it?

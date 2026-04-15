@@ -9,7 +9,6 @@
 
   <modules>
     <module>docker</module>
-    <module>cloud-contract</module>
     <module>kafka</module>
     <module>elasticsearch</module>
     <module>react</module>

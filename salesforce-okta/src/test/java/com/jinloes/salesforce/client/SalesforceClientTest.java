@@ -1,6 +1,7 @@
 package com.jinloes.salesforce.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,6 +23,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,6 +72,26 @@ class SalesforceClientTest {
 
       verify(builder).baseUrl("https://example.sandbox.my.salesforce.com");
       verify(builder).defaultHeader("Authorization", "Bearer sf-access-token");
+    }
+
+    @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void propagatesHttpErrorOnQueryFailure() {
+      RestClient.RequestHeadersUriSpec getSpec = mock(RestClient.RequestHeadersUriSpec.class);
+      RestClient.RequestHeadersSpec headersSpec = mock(RestClient.RequestHeadersSpec.class);
+      RestClient.ResponseSpec responseSpec = mock(RestClient.ResponseSpec.class);
+
+      when(builtClient.get()).thenReturn(getSpec);
+      doReturn(headersSpec).when(getSpec).uri(isA(java.util.function.Function.class));
+      when(headersSpec.retrieve()).thenReturn(responseSpec);
+      when(responseSpec.body(SalesforceQueryResult.class))
+          .thenThrow(
+              HttpClientErrorException.create(HttpStatus.FORBIDDEN, "Forbidden", null, null, null));
+
+      assertThatThrownBy(() -> client.query(sfToken(), "SELECT Id FROM Case"))
+          .isInstanceOf(HttpClientErrorException.class)
+          .extracting(e -> ((HttpClientErrorException) e).getStatusCode())
+          .isEqualTo(HttpStatus.FORBIDDEN);
     }
   }
 
@@ -128,9 +151,7 @@ class SalesforceClientTest {
   }
 
   private SalesforceTokenResponse sfToken() {
-    var token = new SalesforceTokenResponse();
-    token.setAccessToken("sf-access-token");
-    token.setInstanceUrl("https://example.sandbox.my.salesforce.com");
-    return token;
+    return new SalesforceTokenResponse(
+        "sf-access-token", "https://example.sandbox.my.salesforce.com", "Bearer");
   }
 }

@@ -2,7 +2,9 @@ package com.jinloes.todo.web;
 
 import com.jinloes.todo.domain.Todo;
 import com.jinloes.todo.service.TodoService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,48 +17,53 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/todos")
 @RequiredArgsConstructor
 public class TodoController {
 
-    private final TodoService todoService;
+  private final TodoService todoService;
 
-    @GetMapping
-    public List<Todo> getAllTodos() {
-        return todoService.getAllTodos();
-    }
+  @GetMapping
+  public List<Todo> getAllTodos() {
+    log.info("GET /api/todos");
+    return todoService.getAllTodos();
+  }
 
-    @GetMapping("/{id}")
-    public Todo getTodo(@PathVariable String id) {
-        return todoService.getTodoById(id);
-    }
+  @GetMapping("/{id}")
+  public Todo getTodo(@PathVariable String id) {
+    log.info("GET /api/todos/%s".formatted(id));
+    return todoService.getTodoById(id);
+  }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Todo createTodo(@RequestBody CreateTodoRequest request) {
-        return todoService.createTodo(request.title(), request.description());
-    }
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public Todo createTodo(@RequestBody CreateTodoRequest request) {
+    log.info("POST /api/todos title='%s'".formatted(request.title()));
+    return todoService.createTodo(request.title(), request.description());
+  }
 
-    @PutMapping("/{id}")
-    public Todo updateTodo(@PathVariable String id, @RequestBody UpdateTodoRequest request) {
-        return todoService.updateTodo(id, request.title(), request.description());
-    }
+  @PutMapping("/{id}")
+  public Todo updateTodo(@PathVariable String id, @RequestBody UpdateTodoRequest request) {
+    log.info("PUT /api/todos/%s title='%s'".formatted(id, request.title()));
+    return todoService.updateTodo(id, request.title(), request.description());
+  }
 
-    @PatchMapping("/{id}/complete")
-    public Todo completeTodo(@PathVariable String id) {
-        return todoService.completeTodo(id);
-    }
+  @PatchMapping("/{id}/complete")
+  public Todo completeTodo(@PathVariable String id) {
+    log.info("PATCH /api/todos/%s/complete".formatted(id));
+    return todoService.completeTodo(id);
+  }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTodo(@PathVariable String id) {
-        todoService.deleteTodo(id);
-    }
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteTodo(@PathVariable String id) {
+    log.info("DELETE /api/todos/%s".formatted(id));
+    todoService.deleteTodo(id);
+  }
 
-    public record CreateTodoRequest(String title, String description) {}
+  public record CreateTodoRequest(String title, String description) {}
 
-    public record UpdateTodoRequest(String title, String description) {}
+  public record UpdateTodoRequest(String title, String description) {}
 }

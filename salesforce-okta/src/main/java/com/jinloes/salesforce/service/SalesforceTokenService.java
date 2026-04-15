@@ -9,6 +9,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
@@ -17,12 +18,14 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 /**
  * Implements the OAuth 2.0 JWT Bearer Flow (RFC 7523): exchanges an Okta token for a Salesforce
  * user-context access token by minting a signed JWT assertion.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SalesforceTokenService {
@@ -36,19 +39,36 @@ public class SalesforceTokenService {
   public SalesforceTokenResponse exchange(String oktaToken) {
     String email = extractEmailFromJwt(oktaToken);
     String salesforceUsername = email + properties.usernameSuffix();
+    log.debug("Fetching Salesforce token for username={}", salesforceUsername);
+
     String signedJwt = mintSalesforceJwt(salesforceUsername);
 
     var form = new LinkedMultiValueMap<String, String>();
     form.add("grant_type", JWT_BEARER_GRANT);
     form.add("assertion", signedJwt);
 
-    return restClient
-        .post()
-        .uri(properties.tokenUrl())
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .body(form)
-        .retrieve()
-        .body(SalesforceTokenResponse.class);
+    try {
+      SalesforceTokenResponse response =
+          restClient
+              .post()
+              .uri(properties.tokenUrl())
+              .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+              .body(form)
+              .retrieve()
+              .body(SalesforceTokenResponse.class);
+      log.debug(
+          "Received Salesforce token for username={}, instanceUrl={}",
+          salesforceUsername,
+          response != null ? response.instanceUrl() : "null");
+      return response;
+    } catch (HttpStatusCodeException e) {
+      log.error(
+          "Salesforce token exchange failed for username={}: status={} body={}",
+          salesforceUsername,
+          e.getStatusCode(),
+          e.getResponseBodyAsString());
+      throw e;
+    }
   }
 
   private String extractEmailFromJwt(String jwt) {

@@ -22,63 +22,57 @@ public class Bucket4JRateLimiter {
   /**
    * Check if request is allowed based on rate limit
    *
-   * @param key          unique identifier (e.g., user ID, IP address)
-   * @param tokens       number of tokens to consume
-   * @param capacity     maximum number of tokens in bucket
+   * @param key unique identifier (e.g., user ID, IP address)
+   * @param tokens number of tokens to consume
+   * @param capacity maximum number of tokens in bucket
    * @param refillTokens number of tokens to refill
    * @param refillPeriod period for refill
    * @return RateLimitResult containing whether request is allowed and metadata
    */
-  public RateLimitResult isRequestAllowed(String key, long tokens, long capacity, long refillTokens,
-      Duration refillPeriod) {
+  public RateLimitResult isRequestAllowed(
+      String key, long tokens, long capacity, long refillTokens, Duration refillPeriod) {
 
-    Supplier<BucketConfiguration> configSupplier = () -> {
-      Bandwidth limit = Bandwidth.builder()
-          .capacity(capacity)
-          .refillIntervally(refillTokens, refillPeriod)
-          .build();
+    Supplier<BucketConfiguration> configSupplier =
+        () -> {
+          Bandwidth limit =
+              Bandwidth.builder()
+                  .capacity(capacity)
+                  .refillIntervally(refillTokens, refillPeriod)
+                  .build();
 
-      return BucketConfiguration.builder()
-          .addLimit(limit)
-          .build();
-    };
+          return BucketConfiguration.builder().addLimit(limit).build();
+        };
 
-    Bucket bucket = proxyManager.builder()
-        .build(key, configSupplier);
+    Bucket bucket = proxyManager.builder().build(key, configSupplier);
 
     ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(tokens);
 
     if (probe.isConsumed()) {
-      log.debug("Request allowed for key: {}, remaining tokens: {}", key, probe.getRemainingTokens());
+      log.debug(
+          "Request allowed for key: {}, remaining tokens: {}", key, probe.getRemainingTokens());
       return RateLimitResult.allowed(probe.getRemainingTokens());
     } else {
-      log.debug("Request denied for key: {}, retry after: {} seconds",
-          key, TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill()));
+      log.debug(
+          "Request denied for key: {}, retry after: {} seconds",
+          key,
+          TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill()));
       return RateLimitResult.denied(
-          probe.getRemainingTokens(),
-          Duration.ofNanos(probe.getNanosToWaitForRefill())
-      );
+          probe.getRemainingTokens(), Duration.ofNanos(probe.getNanosToWaitForRefill()));
     }
   }
 
-  /**
-   * Convenience method for common rate limiting scenarios
-   */
+  /** Convenience method for common rate limiting scenarios */
   public RateLimitResult isRequestAllowed(String key) {
     // Default: 100 requests per minute
     return isRequestAllowed(key, 1, 100, 100, Duration.ofMinutes(1));
   }
 
-  /**
-   * API rate limiting: 1000 requests per hour
-   */
+  /** API rate limiting: 1000 requests per hour */
   public RateLimitResult isApiRequestAllowed(String apiKey) {
     return isRequestAllowed("api:" + apiKey, 1, 1000, 1000, Duration.ofHours(1));
   }
 
-  /**
-   * User action rate limiting: 10 requests per minute
-   */
+  /** User action rate limiting: 10 requests per minute */
   public RateLimitResult isUserActionAllowed(String userId) {
     return isRequestAllowed("user:" + userId, 1, 10, 10, Duration.ofMinutes(1));
   }

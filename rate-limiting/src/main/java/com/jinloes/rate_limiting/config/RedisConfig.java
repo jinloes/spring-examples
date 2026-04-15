@@ -33,13 +33,16 @@ public class RedisConfig {
 
   @Bean
   public ProxyManager<String> proxyManager(RedisTemplate<String, Object> redisTemplate) {
-    LettuceConnectionFactory connectionFactory = (LettuceConnectionFactory) redisTemplate.getConnectionFactory();
+    LettuceConnectionFactory connectionFactory =
+        (LettuceConnectionFactory) redisTemplate.getConnectionFactory();
     RedisClient redisClient = (RedisClient) connectionFactory.getNativeClient();
 
     StatefulRedisConnection<String, byte[]> connection =
         redisClient.connect(RedisCodec.of(StringCodec.UTF8, ByteArrayCodec.INSTANCE));
     return Bucket4jLettuce.casBasedBuilder(connection)
-        .expirationAfterWrite(ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(Duration.ofMinutes(10)))
+        .expirationAfterWrite(
+            ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(
+                Duration.ofMinutes(10)))
         .build();
   }
 }

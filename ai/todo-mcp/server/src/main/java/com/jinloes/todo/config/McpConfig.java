@@ -9,10 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class McpConfig {
 
-    @Bean
-    public ToolCallbackProvider todoTools(TodoService todoService) {
-        return MethodToolCallbackProvider.builder()
-                .toolObjects(todoService)
-                .build();
-    }
+  @Bean
+  public ToolCallbackProvider todoTools(TodoService todoService) {
+    return MethodToolCallbackProvider.builder().toolObjects(todoService).build();
+  }
 }

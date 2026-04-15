@@ -13,6 +13,7 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinloes.apidoc.restdoc.model.CreateAccountRequest;
 import java.util.UUID;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
@@ -35,50 +36,59 @@ class AccountControllerTest {
   @Autowired MockMvc mockMvc;
   @Autowired ObjectMapper objectMapper;
 
-  @Test
-  void getAccount() throws Exception {
-    mockMvc
-        .perform(get("/accounts/{id}", UUID.randomUUID()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("Sample Account"))
-        .andDo(
-            document(
-                "get-account",
-                resource(
-                    ResourceSnippetParameters.builder()
-                        .summary("Get account by ID")
-                        .description("Returns a bank account for the given ID.")
-                        .pathParameters(parameterWithName("id").description("Account UUID"))
-                        .responseFields(
-                            fieldWithPath("id").description("Account UUID"),
-                            fieldWithPath("name").description("Account holder name"),
-                            fieldWithPath("amount").description("Current balance in cents"))
-                        .build())));
+  @Nested
+  class WhenGettingAccount {
+
+    @Test
+    void returnsAccountForGivenId() throws Exception {
+      mockMvc
+          .perform(get("/accounts/{id}", UUID.randomUUID()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.name").value("Sample Account"))
+          .andDo(
+              document(
+                  "get-account",
+                  resource(
+                      ResourceSnippetParameters.builder()
+                          .summary("Get account by ID")
+                          .description("Returns a bank account for the given ID.")
+                          .pathParameters(parameterWithName("id").description("Account UUID"))
+                          .responseFields(
+                              fieldWithPath("id").description("Account UUID"),
+                              fieldWithPath("name").description("Account holder name"),
+                              fieldWithPath("amount").description("Current balance in cents"))
+                          .build())));
+    }
   }
 
-  @Test
-  void createAccount() throws Exception {
-    mockMvc
-        .perform(
-            post("/accounts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    objectMapper.writeValueAsString(new CreateAccountRequest("Jane Doe", 50000))))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.name").value("Jane Doe"))
-        .andDo(
-            document(
-                "create-account",
-                resource(
-                    ResourceSnippetParameters.builder()
-                        .summary("Create a new account")
-                        .requestFields(
-                            fieldWithPath("name").description("Account holder name"),
-                            fieldWithPath("initialAmount").description("Initial deposit in cents"))
-                        .responseFields(
-                            fieldWithPath("id").description("Generated account UUID"),
-                            fieldWithPath("name").description("Account holder name"),
-                            fieldWithPath("amount").description("Balance in cents"))
-                        .build())));
+  @Nested
+  class WhenCreatingAccount {
+
+    @Test
+    void returnsCreatedAccountWithRequestedValues() throws Exception {
+      mockMvc
+          .perform(
+              post("/accounts")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(
+                      objectMapper.writeValueAsString(new CreateAccountRequest("Jane Doe", 50000))))
+          .andExpect(status().isCreated())
+          .andExpect(jsonPath("$.name").value("Jane Doe"))
+          .andDo(
+              document(
+                  "create-account",
+                  resource(
+                      ResourceSnippetParameters.builder()
+                          .summary("Create a new account")
+                          .requestFields(
+                              fieldWithPath("name").description("Account holder name"),
+                              fieldWithPath("initialAmount")
+                                  .description("Initial deposit in cents"))
+                          .responseFields(
+                              fieldWithPath("id").description("Generated account UUID"),
+                              fieldWithPath("name").description("Account holder name"),
+                              fieldWithPath("amount").description("Balance in cents"))
+                          .build())));
+    }
   }
 }

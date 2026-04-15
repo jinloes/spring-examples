@@ -12,10 +12,10 @@ Each top-level directory is a standalone example module:
 | `djl/` | Deep Java Library (ML) integration (Gradle) |
 | `docker/` | Docker/containerization examples (Gradle + Maven) |
 | `elasticsearch/` | Elasticsearch integration (Maven) |
-| `eureka/` | Service discovery with Eureka (Maven) |
+| `service-discovery/` | Service discovery examples: Kubernetes DNS, Consul, Spring Cloud Kubernetes (Gradle) |
 | `graphql/` | GraphQL with Spring (Maven) |
 | `grpc/` | gRPC API with Spring (Gradle) |
-| `grpc-react-dynamic-ui/` | gRPC with React dynamic UI (Gradle) |
+| `grpc-react-dynamic-components/` | gRPC with React dynamic UI (Gradle) |
 | `helm/` | Helm chart examples (Maven) |
 | `http2/` | HTTP/2 with Spring (Gradle) |
 | `jpa-multitenancy/` | JPA multi-tenancy patterns (Gradle) |
@@ -38,12 +38,12 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-- **Gradle** (multi-module): `djl`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `openapi`, `rate-limiting`, `webflux`, `grpc`, `grpc-react-dynamic-ui`, `rabbitmq-websockets`, `restdoc`, `vertx`
+- **Gradle** (multi-module): `djl`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `openapi`, `rate-limiting`, `webflux`, `grpc`, `grpc-react-dynamic-components`, `rabbitmq-websockets`, `restdoc`, `vertx`, `service-discovery`
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
 
-- **Maven**: `cloud-contract`, `docker`, `elasticsearch`, `eureka`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `springdoc-openapi`, `theta-sketch`
+- **Maven**: `cloud-contract`, `docker`, `elasticsearch`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `springdoc-openapi`, `theta-sketch`
   - Each has its own `pom.xml`
   - Run: `mvn -f <module>/pom.xml spring-boot:run`
 

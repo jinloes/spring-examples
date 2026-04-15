@@ -1,0 +1,3 @@
+rootProject.name = 'service-discovery'
+
+include(":kubernetes", ":consul", ":spring-cloud-kubernetes")

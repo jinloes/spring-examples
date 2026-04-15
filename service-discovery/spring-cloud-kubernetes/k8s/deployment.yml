@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-kubernetes-discovery
+  labels:
+    app: spring-cloud-kubernetes-discovery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-discovery
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-discovery
+    spec:
+      serviceAccountName: spring-cloud-kubernetes
+      containers:
+        - name: spring-cloud-kubernetes-discovery
+          image: spring-cloud-kubernetes-discovery:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-cloud-kubernetes-discovery
+spec:
+  selector:
+    app: spring-cloud-kubernetes-discovery
+  ports:
+    - port: 80
+      targetPort: 8080

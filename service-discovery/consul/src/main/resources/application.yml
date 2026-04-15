@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: consul-service-discovery
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+        # Each instance gets a unique ID so multiple instances can register simultaneously
+        instance-id: ${spring.application.name}-${random.value}
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.jinloes.servicediscovery.consul: INFO

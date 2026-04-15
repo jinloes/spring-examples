@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: pubsub-messaging
+  cloud:
+    gcp:
+      credentials:
+        # Set via SPRING_CLOUD_GCP_CREDENTIALS_ENCODED_KEY env var or credentials file
+        encoded-key: ${ENCODED_KEY:}
+
+app:
+  pubsub:
+    subscription: ${PUBSUB_SUBSCRIPTION:my-subscription}

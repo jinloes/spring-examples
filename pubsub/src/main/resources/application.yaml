@@ -1,5 +1,0 @@
-spring:
-  cloud:
-    gcp:
-      credentials:
-        encoded-key: ${ENCODED_KEY}

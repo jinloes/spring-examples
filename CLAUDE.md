@@ -19,12 +19,10 @@ Each top-level directory is a standalone example module:
 | `http2/` | HTTP/2 with Spring (Gradle) |
 | `jpa-multitenancy/` | JPA multi-tenancy patterns (Gradle) |
 | `jwt-common/` | JWT shared library (Gradle) |
-| `kafka/` | Kafka integration (Maven) |
 | `loom-web/` | Project Loom virtual threads (Gradle) |
 | `api-doc/` | API documentation: Springdoc (annotation-driven) and REST Docs → OpenAPI (test-driven) (Gradle) |
+| `messaging/` | Messaging examples: Kafka, GCP Pub/Sub, Redis pub/sub → WebSocket push (Gradle) |
 | `oauth2/` | OAuth2 examples (Maven) |
-| `pubsub/` | Pub/Sub messaging (Maven) |
-| `rabbitmq-websockets/` | RabbitMQ + WebSockets (Gradle) |
 | `rate-limiting/` | Rate limiting examples (Gradle) |
 | `react/` | React + Spring integration (Maven) |
 | `retry/` | Spring Retry (Maven) |
@@ -35,12 +33,12 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-- **Gradle** (multi-module): `api-doc`, `djl`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `rate-limiting`, `webflux`, `grpc`, `grpc-react-dynamic-components`, `rabbitmq-websockets`, `service-discovery`
+- **Gradle** (multi-module): `api-doc`, `djl`, `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `messaging`, `rate-limiting`, `webflux`, `grpc`, `grpc-react-dynamic-components`, `service-discovery`
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
 
-- **Maven**: `docker`, `elasticsearch`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `theta-sketch`
+- **Maven**: `docker`, `elasticsearch`, `graphql`, `helm`, `oauth2`, `react`, `retry`, `theta-sketch`
   - Each has its own `pom.xml`
   - Run: `mvn -f <module>/pom.xml spring-boot:run`
 

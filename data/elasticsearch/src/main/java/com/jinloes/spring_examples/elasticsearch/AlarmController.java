@@ -4,6 +4,7 @@ import com.jinloes.spring_examples.elasticsearch.data.Alarm;
 import com.jinloes.spring_examples.elasticsearch.data.AlarmRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/alarms")
 @RequiredArgsConstructor
@@ -20,11 +22,21 @@ public class AlarmController {
 
   @PostMapping
   public Alarm create(@RequestBody Alarm alarm) {
-    return alarmRepository.save(new Alarm(UUID.randomUUID().toString(), alarm.getOrg()));
+    log.info("Creating alarm for org={}", alarm.org());
+    Alarm created = alarmRepository.save(new Alarm(UUID.randomUUID().toString(), alarm.org()));
+    log.info("Created alarm id={} org={}", created.id(), created.org());
+    return created;
   }
 
   @GetMapping("/{id}")
   public Alarm get(@PathVariable String id) {
-    return alarmRepository.findById(id).orElseThrow(() -> new AlarmNotFoundException(id));
+    log.info("Fetching alarm id={}", id);
+    return alarmRepository
+        .findById(id)
+        .orElseThrow(
+            () -> {
+              log.warn("Alarm not found id={}", id);
+              return new AlarmNotFoundException(id);
+            });
   }
 }

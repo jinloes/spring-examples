@@ -42,9 +42,9 @@ class SalesforceControllerTest {
 
   @BeforeEach
   void setUp() {
-    sfToken = new SalesforceTokenResponse();
-    sfToken.setAccessToken("sf-access-token");
-    sfToken.setInstanceUrl("https://linkedin--qa.sandbox.my.salesforce.com");
+    sfToken =
+        new SalesforceTokenResponse(
+            "sf-access-token", "https://linkedin--qa.sandbox.my.salesforce.com", "Bearer");
     when(tokenService.exchange("test-okta-token")).thenReturn(sfToken);
   }
 

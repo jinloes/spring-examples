@@ -66,10 +66,17 @@ public class ThreadController {
         futures.add(executor.submit(() -> callService(taskId, delayMs)));
       }
 
-      List<ServiceResult> results = new ArrayList<>();
-      for (Future<ServiceResult> f : futures) {
-        results.add(f.get());
-      }
+      List<ServiceResult> results =
+          futures.stream()
+              .map(
+                  f -> {
+                    try {
+                      return f.get();
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  })
+              .toList();
 
       long elapsed = System.currentTimeMillis() - start;
       log.info("{} tasks x {}ms each completed in {}ms total", tasks, delayMs, elapsed);

@@ -1,6 +1,7 @@
 package com.jinloes.salesforce.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -23,7 +24,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 @ExtendWith(MockitoExtension.class)
@@ -104,6 +107,28 @@ class SalesforceTokenServiceTest {
 
       assertThat(service.exchange(buildOktaJwt("user@linkedin.com"))).isEqualTo(expected);
     }
+
+    @Test
+    void propagatesHttpErrorFromTokenEndpoint() {
+      var mockUriSpec = mock(RestClient.RequestBodyUriSpec.class);
+      mockBodySpec = mock(RestClient.RequestBodySpec.class);
+      RestClient.ResponseSpec mockResponseSpec = mock(RestClient.ResponseSpec.class);
+
+      when(restClient.post()).thenReturn(mockUriSpec);
+      when(mockUriSpec.uri(anyString())).thenReturn(mockBodySpec);
+      when(mockBodySpec.contentType(any())).thenReturn(mockBodySpec);
+      when(mockBodySpec.body((Object) any())).thenReturn(mockBodySpec);
+      when(mockBodySpec.retrieve()).thenReturn(mockResponseSpec);
+      when(mockResponseSpec.body(SalesforceTokenResponse.class))
+          .thenThrow(
+              HttpClientErrorException.create(
+                  HttpStatus.UNAUTHORIZED, "Unauthorized", null, null, null));
+
+      assertThatThrownBy(() -> service.exchange(buildOktaJwt("user@linkedin.com")))
+          .isInstanceOf(HttpClientErrorException.class)
+          .extracting(e -> ((HttpClientErrorException) e).getStatusCode())
+          .isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
   }
 
   // --- helpers ---
@@ -139,10 +164,8 @@ class SalesforceTokenServiceTest {
   }
 
   private SalesforceTokenResponse sfTokenResponse() {
-    var token = new SalesforceTokenResponse();
-    token.setAccessToken("sf-access-token");
-    token.setInstanceUrl("https://linkedin--qa.sandbox.my.salesforce.com");
-    return token;
+    return new SalesforceTokenResponse(
+        "sf-access-token", "https://linkedin--qa.sandbox.my.salesforce.com", "Bearer");
   }
 
   private String buildOktaJwt(String email) {

@@ -2,15 +2,19 @@ package com.jinloes.jpa_multitenancy.data;
 
 import com.jinloes.jpa_multitenancy.TenantContext;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 
+@Slf4j
 public class TenantIdentifierResolver
     implements CurrentTenantIdentifierResolver<String>, HibernatePropertiesCustomizer {
   @Override
   public String resolveCurrentTenantIdentifier() {
-    return TenantContext.getCurrentTenant().orElse("public");
+    String tenant = TenantContext.getCurrentTenant().orElse("public");
+    log.debug("Resolved tenant identifier: {}", tenant);
+    return tenant;
   }
 
   @Override

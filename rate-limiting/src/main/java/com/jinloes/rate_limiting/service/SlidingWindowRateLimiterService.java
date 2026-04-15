@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SlidingWindowRateLimiterService {
 
   private final RedisTemplate<String, Object> redisTemplate;
@@ -22,17 +24,38 @@ public class SlidingWindowRateLimiterService {
   public boolean isAllowed(String key, int limit, Duration windowDuration) {
     validateInputs(key, limit, windowDuration);
 
+    log.debug(
+        "Checking sliding window rate limit for key='{}', limit={}, window={}s",
+        key,
+        limit,
+        windowDuration.toSeconds());
+
     String fullKey = "rate_limit:" + key;
     long windowStart = Instant.now().toEpochMilli() - windowDuration.toMillis();
 
     List<String> keys = Collections.singletonList(fullKey);
-    Long result = redisTemplate.execute(createRateLimitScript(), keys,
-        String.valueOf(limit),
-        String.valueOf(windowStart),
-        String.valueOf(Instant.now().toEpochMilli()),
-        String.valueOf(windowDuration.toSeconds() == 0 ? 1 : windowDuration.toSeconds()));
+    Long result =
+        redisTemplate.execute(
+            createRateLimitScript(),
+            keys,
+            String.valueOf(limit),
+            String.valueOf(windowStart),
+            String.valueOf(Instant.now().toEpochMilli()),
+            String.valueOf(windowDuration.toSeconds() == 0 ? 1 : windowDuration.toSeconds()));
 
-    return result != null && result == 0;
+    boolean allowed = result != null && result == 0;
+
+    if (!allowed) {
+      log.warn(
+          "Rate limit exceeded for key='{}' (limit={} requests per {}s)",
+          key,
+          limit,
+          windowDuration.toSeconds());
+    } else {
+      log.debug("Request allowed for key='{}'", key);
+    }
+
+    return allowed;
   }
 
   private RedisScript<Long> createRateLimitScript() {

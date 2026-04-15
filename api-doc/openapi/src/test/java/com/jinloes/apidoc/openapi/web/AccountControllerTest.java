@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinloes.apidoc.openapi.model.CreateAccountRequest;
 import java.util.UUID;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,32 +23,40 @@ class AccountControllerTest {
   @Autowired MockMvc mockMvc;
   @Autowired ObjectMapper objectMapper;
 
-  @Test
-  void getAccountReturnsAccountWithMatchingId() throws Exception {
-    UUID id = UUID.randomUUID();
-    MvcResult result =
-        mockMvc
-            .perform(get("/accounts/{id}", id))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.name").value("Sample Account"))
-            .andExpect(jsonPath("$.amount").value(1000))
-            .andReturn();
+  @Nested
+  class WhenGettingAccount {
 
-    String responseId =
-        objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
-    assertThat(responseId).isEqualTo(id.toString());
+    @Test
+    void returnsAccountWithMatchingId() throws Exception {
+      UUID id = UUID.randomUUID();
+      MvcResult result =
+          mockMvc
+              .perform(get("/accounts/{id}", id))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.name").value("Sample Account"))
+              .andExpect(jsonPath("$.amount").value(1000))
+              .andReturn();
+
+      String responseId =
+          objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
+      assertThat(responseId).isEqualTo(id.toString());
+    }
   }
 
-  @Test
-  void createAccountReturnsCreatedAccountWithRequestedValues() throws Exception {
-    mockMvc
-        .perform(
-            post("/accounts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    objectMapper.writeValueAsString(new CreateAccountRequest("Jane Doe", 50000))))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.name").value("Jane Doe"))
-        .andExpect(jsonPath("$.amount").value(50000));
+  @Nested
+  class WhenCreatingAccount {
+
+    @Test
+    void returnsCreatedAccountWithRequestedValues() throws Exception {
+      mockMvc
+          .perform(
+              post("/accounts")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(
+                      objectMapper.writeValueAsString(new CreateAccountRequest("Jane Doe", 50000))))
+          .andExpect(status().isCreated())
+          .andExpect(jsonPath("$.name").value("Jane Doe"))
+          .andExpect(jsonPath("$.amount").value(50000));
+    }
   }
 }

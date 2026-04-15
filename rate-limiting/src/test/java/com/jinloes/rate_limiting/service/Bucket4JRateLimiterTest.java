@@ -27,8 +27,8 @@ import org.testcontainers.utility.DockerImageName;
 class Bucket4JRateLimiterTest {
 
   @Container
-  private static final GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-      .withExposedPorts(6379);
+  private static final GenericContainer<?> redis =
+      new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
@@ -36,11 +36,9 @@ class Bucket4JRateLimiterTest {
     registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
   }
 
-  @Autowired
-  private Bucket4JRateLimiter rateLimiter;
+  @Autowired private Bucket4JRateLimiter rateLimiter;
 
-  @Autowired
-  private RedisTemplate<String, Object> redisTemplate;
+  @Autowired private RedisTemplate<String, Object> redisTemplate;
 
   @BeforeEach
   void setUp() {
@@ -54,17 +52,12 @@ class Bucket4JRateLimiterTest {
     String key = "test-user";
 
     // When
-    RateLimitResult result = rateLimiter.isRequestAllowed(
-        key, 1, 5, 5, Duration.ofMinutes(1)
-    );
+    RateLimitResult result = rateLimiter.isRequestAllowed(key, 1, 5, 5, Duration.ofMinutes(1));
 
     // Then
-    assertThat(result.isAllowed())
-        .isTrue();
-    assertThat(result.getRemainingTokens())
-        .isEqualTo(4);
-    assertThat(result.getRetryAfter())
-        .isEqualTo(Duration.ZERO);
+    assertThat(result.allowed()).isTrue();
+    assertThat(result.remainingTokens()).isEqualTo(4);
+    assertThat(result.retryAfter()).isEqualTo(Duration.ZERO);
   }
 
   @Test
@@ -75,22 +68,20 @@ class Bucket4JRateLimiterTest {
 
     // When - consume all tokens
     for (int i = 0; i < capacity; i++) {
-      RateLimitResult result = rateLimiter.isRequestAllowed(
-          key, 1, capacity, capacity, Duration.ofMinutes(1)
-      );
-      assertThat(result.isAllowed()).isTrue();
+      RateLimitResult result =
+          rateLimiter.isRequestAllowed(key, 1, capacity, capacity, Duration.ofMinutes(1));
+      assertThat(result.allowed()).isTrue();
     }
 
     // When - exceed limit
-    RateLimitResult result = rateLimiter.isRequestAllowed(
-        key, 1, capacity, capacity, Duration.ofMinutes(1)
-    );
+    RateLimitResult result =
+        rateLimiter.isRequestAllowed(key, 1, capacity, capacity, Duration.ofMinutes(1));
 
     // Then
-    assertThat(result.isAllowed()).isFalse();
-    assertThat(result.getRemainingTokens()).isZero();
-    assertThat(result.getRetryAfter()).isNotNull();
-    assertThat(result.getRetryAfter().toSeconds()).isGreaterThan(0);
+    assertThat(result.allowed()).isFalse();
+    assertThat(result.remainingTokens()).isZero();
+    assertThat(result.retryAfter()).isNotNull();
+    assertThat(result.retryAfter().toSeconds()).isGreaterThan(0);
   }
 
   @Test
@@ -101,13 +92,13 @@ class Bucket4JRateLimiterTest {
     int tokensToConsume = 5;
 
     // When
-    RateLimitResult result = rateLimiter.isRequestAllowed(
-        key, tokensToConsume, capacity, capacity, Duration.ofMinutes(1)
-    );
+    RateLimitResult result =
+        rateLimiter.isRequestAllowed(
+            key, tokensToConsume, capacity, capacity, Duration.ofMinutes(1));
 
     // Then
-    assertThat(result.isAllowed()).isTrue();
-    assertThat(result.getRemainingTokens()).isEqualTo(capacity - tokensToConsume);
+    assertThat(result.allowed()).isTrue();
+    assertThat(result.remainingTokens()).isEqualTo(capacity - tokensToConsume);
   }
 
   @Test
@@ -118,13 +109,13 @@ class Bucket4JRateLimiterTest {
     int tokensToConsume = 10;
 
     // When
-    RateLimitResult result = rateLimiter.isRequestAllowed(
-        key, tokensToConsume, capacity, capacity, Duration.ofMinutes(1)
-    );
+    RateLimitResult result =
+        rateLimiter.isRequestAllowed(
+            key, tokensToConsume, capacity, capacity, Duration.ofMinutes(1));
 
     // Then
-    assertThat(result.isAllowed()).isFalse();
-    assertThat(result.getRetryAfter()).isNotNull();
+    assertThat(result.allowed()).isFalse();
+    assertThat(result.retryAfter()).isNotNull();
   }
 
   @Test
@@ -135,33 +126,25 @@ class Bucket4JRateLimiterTest {
     Duration refillPeriod = Duration.ofMillis(500);
 
     // When - consume all tokens
-    RateLimitResult result1 = rateLimiter.isRequestAllowed(
-        key, 1, capacity, 1, refillPeriod
-    );
-    RateLimitResult result2 = rateLimiter.isRequestAllowed(
-        key, 1, capacity, 1, refillPeriod
-    );
+    RateLimitResult result1 = rateLimiter.isRequestAllowed(key, 1, capacity, 1, refillPeriod);
+    RateLimitResult result2 = rateLimiter.isRequestAllowed(key, 1, capacity, 1, refillPeriod);
 
     // Then - should be at limit
-    assertThat(result1.isAllowed()).isTrue();
-    assertThat(result2.isAllowed()).isTrue();
+    assertThat(result1.allowed()).isTrue();
+    assertThat(result2.allowed()).isTrue();
 
     // When - try to consume another token immediately
-    RateLimitResult result3 = rateLimiter.isRequestAllowed(
-        key, 1, capacity, 1, refillPeriod
-    );
+    RateLimitResult result3 = rateLimiter.isRequestAllowed(key, 1, capacity, 1, refillPeriod);
 
     // Then - should be denied
-    assertThat(result3.isAllowed()).isFalse();
+    assertThat(result3.allowed()).isFalse();
 
     // When - wait for refill and try again
     Thread.sleep(600); // Wait longer than refill period
-    RateLimitResult result4 = rateLimiter.isRequestAllowed(
-        key, 1, capacity, 1, refillPeriod
-    );
+    RateLimitResult result4 = rateLimiter.isRequestAllowed(key, 1, capacity, 1, refillPeriod);
 
     // Then - should be allowed after refill
-    assertThat(result4.isAllowed()).isTrue();
+    assertThat(result4.allowed()).isTrue();
   }
 
   @Test
@@ -175,18 +158,16 @@ class Bucket4JRateLimiterTest {
     rateLimiter.isRequestAllowed(key1, 1, capacity, capacity, Duration.ofMinutes(1));
     rateLimiter.isRequestAllowed(key1, 1, capacity, capacity, Duration.ofMinutes(1));
 
-    RateLimitResult result1 = rateLimiter.isRequestAllowed(
-        key1, 1, capacity, capacity, Duration.ofMinutes(1)
-    );
+    RateLimitResult result1 =
+        rateLimiter.isRequestAllowed(key1, 1, capacity, capacity, Duration.ofMinutes(1));
 
     // When - try with user-2
-    RateLimitResult result2 = rateLimiter.isRequestAllowed(
-        key2, 1, capacity, capacity, Duration.ofMinutes(1)
-    );
+    RateLimitResult result2 =
+        rateLimiter.isRequestAllowed(key2, 1, capacity, capacity, Duration.ofMinutes(1));
 
     // Then
-    assertThat(result1.isAllowed()).isFalse(); // user-1 is rate limited
-    assertThat(result2.isAllowed()).isTrue();  // user-2 is not affected
+    assertThat(result1.allowed()).isFalse(); // user-1 is rate limited
+    assertThat(result2.allowed()).isTrue(); // user-2 is not affected
   }
 
   @Test
@@ -202,32 +183,34 @@ class Bucket4JRateLimiterTest {
     var results = new RateLimitResult[numberOfThreads];
     for (int i = 0; i < numberOfThreads; i++) {
       final int index = i;
-      executor.submit(() -> {
-        try {
-          results[index] = rateLimiter.isRequestAllowed(
-              key, 1, capacity, capacity, Duration.ofMinutes(1)
-          );
-        } finally {
-          latch.countDown();
-        }
-      });
+      executor.submit(
+          () -> {
+            try {
+              results[index] =
+                  rateLimiter.isRequestAllowed(key, 1, capacity, capacity, Duration.ofMinutes(1));
+            } finally {
+              latch.countDown();
+            }
+          });
     }
 
     latch.await(10, TimeUnit.SECONDS);
     executor.shutdown();
 
     // Then - only 'capacity' requests should be allowed
-    long allowedCount = IntStream.range(0, numberOfThreads)
-        .mapToObj(i -> results[i])
-        .filter(RateLimitResult::isAllowed)
-        .count();
+    long allowedCount =
+        IntStream.range(0, numberOfThreads)
+            .mapToObj(i -> results[i])
+            .filter(RateLimitResult::allowed)
+            .count();
 
     assertThat(allowedCount).isEqualTo(capacity);
 
-    long deniedCount = IntStream.range(0, numberOfThreads)
-        .mapToObj(i -> results[i])
-        .filter(result -> !result.isAllowed())
-        .count();
+    long deniedCount =
+        IntStream.range(0, numberOfThreads)
+            .mapToObj(i -> results[i])
+            .filter(result -> !result.allowed())
+            .count();
 
     assertThat(deniedCount).isEqualTo(numberOfThreads - capacity);
   }
@@ -241,8 +224,8 @@ class Bucket4JRateLimiterTest {
     RateLimitResult result = rateLimiter.isRequestAllowed(key);
 
     // Then
-    assertThat(result.isAllowed()).isTrue();
-    assertThat(result.getRemainingTokens()).isEqualTo(99); // 100 - 1
+    assertThat(result.allowed()).isTrue();
+    assertThat(result.remainingTokens()).isEqualTo(99); // 100 - 1
   }
 
   @Test
@@ -254,8 +237,8 @@ class Bucket4JRateLimiterTest {
     RateLimitResult result = rateLimiter.isApiRequestAllowed(apiKey);
 
     // Then
-    assertThat(result.isAllowed()).isTrue();
-    assertThat(result.getRemainingTokens()).isEqualTo(999); // 1000 - 1
+    assertThat(result.allowed()).isTrue();
+    assertThat(result.remainingTokens()).isEqualTo(999); // 1000 - 1
   }
 
   @Test
@@ -266,15 +249,15 @@ class Bucket4JRateLimiterTest {
     // When - consume all allowed actions (10 per minute)
     for (int i = 0; i < 10; i++) {
       RateLimitResult result = rateLimiter.isUserActionAllowed(userId);
-      assertThat(result.isAllowed()).isTrue();
+      assertThat(result.allowed()).isTrue();
     }
 
     // When - try one more action
     RateLimitResult result = rateLimiter.isUserActionAllowed(userId);
 
     // Then
-    assertThat(result.isAllowed()).isFalse();
-    assertThat(result.getRetryAfter()).isNotNull();
+    assertThat(result.allowed()).isFalse();
+    assertThat(result.retryAfter()).isNotNull();
   }
 
   @Test
@@ -288,13 +271,13 @@ class Bucket4JRateLimiterTest {
     RateLimitResult userResult = rateLimiter.isUserActionAllowed(identifier);
 
     // Then - all should be allowed as they use different keys internally
-    assertThat(defaultResult.isAllowed()).isTrue();
-    assertThat(apiResult.isAllowed()).isTrue();
-    assertThat(userResult.isAllowed()).isTrue();
+    assertThat(defaultResult.allowed()).isTrue();
+    assertThat(apiResult.allowed()).isTrue();
+    assertThat(userResult.allowed()).isTrue();
 
     // And they should have different remaining token counts
-    assertThat(defaultResult.getRemainingTokens()).isEqualTo(99);  // 100 - 1
-    assertThat(apiResult.getRemainingTokens()).isEqualTo(999);     // 1000 - 1
-    assertThat(userResult.getRemainingTokens()).isEqualTo(9);      // 10 - 1
+    assertThat(defaultResult.remainingTokens()).isEqualTo(99); // 100 - 1
+    assertThat(apiResult.remainingTokens()).isEqualTo(999); // 1000 - 1
+    assertThat(userResult.remainingTokens()).isEqualTo(9); // 10 - 1
   }
 }

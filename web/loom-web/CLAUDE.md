@@ -15,10 +15,10 @@ throughput and memory compared to platform (OS) threads.
 
 ```bash
 # Virtual threads (default carrier threads = CPU cores)
-./gradlew :loom-web:bootRun --args='--spring.profiles.active=virtual'
+./gradlew :web:loom-web:bootRun --args='--spring.profiles.active=virtual'
 
 # Platform threads (1000-thread Tomcat pool)
-./gradlew :loom-web:bootRun --args='--spring.profiles.active=platform'
+./gradlew :web:loom-web:bootRun --args='--spring.profiles.active=platform'
 ```
 
 ### Run the k6 stress test
@@ -27,13 +27,13 @@ Requires [k6](https://k6.io/) — the Gradle tasks will install it via Homebrew 
 
 ```bash
 # Start app + run k6 with virtual threads profile
-./gradlew :loom-web:k6Virtual
+./gradlew :web:loom-web:k6Virtual
 
 # Start app + run k6 with platform threads profile
-./gradlew :loom-web:k6Platform
+./gradlew :web:loom-web:k6Platform
 
 # Run k6 against an already-running app
-./gradlew :loom-web:k6
+./gradlew :web:loom-web:k6
 ```
 
 ## Endpoints

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: kubernetes-discovery
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.jinloes.servicediscovery.kubernetes: INFO

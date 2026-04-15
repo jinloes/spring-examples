@@ -1,0 +1,29 @@
+# Spring Cloud Kubernetes queries the K8s API to list Services and Endpoints.
+# These RBAC resources grant the pod the minimum permissions required.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spring-cloud-kubernetes
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: spring-cloud-kubernetes-role
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods", "namespaces"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spring-cloud-kubernetes-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: spring-cloud-kubernetes-role
+subjects:
+  - kind: ServiceAccount
+    name: spring-cloud-kubernetes
+    namespace: default

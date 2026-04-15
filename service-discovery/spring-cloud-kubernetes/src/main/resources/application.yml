@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: spring-cloud-kubernetes-discovery
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+        # Set to true to discover services across all namespaces (requires cluster-wide RBAC)
+        all-namespaces: false
+      # Disable ConfigMap/Secret config source for this demo; only discovery is shown
+      config:
+        enabled: false
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.jinloes.servicediscovery.springcloudk8s: INFO

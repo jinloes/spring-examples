@@ -1,0 +1,7 @@
+services:
+  consul:
+    image: hashicorp/consul:1.20
+    ports:
+      - "8500:8500"   # HTTP API + UI
+      - "8600:8600/udp"  # DNS
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0

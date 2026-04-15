@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubernetes-discovery
+  labels:
+    app: kubernetes-discovery
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kubernetes-discovery
+  template:
+    metadata:
+      labels:
+        app: kubernetes-discovery
+    spec:
+      containers:
+        - name: kubernetes-discovery
+          image: kubernetes-discovery:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5

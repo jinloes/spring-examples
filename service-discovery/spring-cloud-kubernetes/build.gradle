@@ -1,0 +1,32 @@
+plugins {
+    id 'org.springframework.boot' version '4.0.2'
+    id "io.spring.dependency-management" version "1.1.7" apply true
+    id 'java'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+ext {
+    springCloudVersion = '2025.1.1'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.testcontainers:testcontainers-k3s'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+}

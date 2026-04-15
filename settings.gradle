@@ -9,10 +9,13 @@ include(
         ":rate-limiting",
         ":webflux",
         ":grpc",
-        ":grpc-react-dynamic-ui",
+        ":grpc-react-dynamic-components",
         ":grpc-generic-filters",
         ":todo-mcp:server",
         ":todo-mcp:client",
+        ":service-discovery:kubernetes",
+        ":service-discovery:consul",
+        ":service-discovery:spring-cloud-kubernetes",
         ":salesforce-okta",
         ":nextjs"
 )

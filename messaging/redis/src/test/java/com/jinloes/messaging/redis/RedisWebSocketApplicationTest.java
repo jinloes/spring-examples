@@ -43,13 +43,30 @@ class RedisWebSocketApplicationTest {
   void contextLoads() {}
 
   @Test
-  void publishReturnsAccepted() {
+  void broadcastReturnsAccepted() {
     ResponseEntity<Void> response =
         restClient
             .post()
             .uri("/api/messages")
             .contentType(MediaType.TEXT_PLAIN)
-            .body("hello")
+            .body("hello everyone")
+            .retrieve()
+            .toBodilessEntity();
+
+    assertThat(response.getStatusCode().value()).isEqualTo(202);
+  }
+
+  @Test
+  void sendToUserReturnsAccepted() {
+    // The message is published to Redis and every instance checks its local SimpUserRegistry.
+    // "alice" is not connected in this test, so no delivery occurs — but the publish itself
+    // succeeds and the endpoint returns 202.
+    ResponseEntity<Void> response =
+        restClient
+            .post()
+            .uri("/api/messages/alice")
+            .contentType(MediaType.TEXT_PLAIN)
+            .body("hello alice")
             .retrieve()
             .toBodilessEntity();
 

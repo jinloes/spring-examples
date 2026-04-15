@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: djl
+
+app:
+  djl:
+    # Path to the locally downloaded CodeBERTa-language-id model directory.
+    # Override with DJL_MODEL_PATH env var or -Dapp.djl.model-path=... JVM arg.
+    # Download instructions: see CLAUDE.md in this module.
+    model-path: ${DJL_MODEL_PATH:${user.home}/.djl.ai/CodeBERTa-language-id}

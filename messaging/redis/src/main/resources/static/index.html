@@ -6,49 +6,124 @@
   <script src="/webjars/sockjs-client/sockjs.min.js"></script>
   <script src="/webjars/stomp-websocket/stomp.min.js"></script>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
-    #messages { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 8px; margin-bottom: 12px; }
-    .message { padding: 4px 0; border-bottom: 1px solid #eee; }
-    input { width: 70%; padding: 8px; }
-    button { padding: 8px 16px; }
-    #status { color: #888; font-size: 0.9em; margin-bottom: 8px; }
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 16px; }
+    .panel { border: 1px solid #ccc; border-radius: 4px; padding: 12px; margin-bottom: 16px; }
+    .messages { height: 150px; overflow-y: auto; background: #f9f9f9; padding: 8px; margin-bottom: 8px; font-size: 0.9em; }
+    .msg { padding: 2px 0; border-bottom: 1px solid #eee; }
+    input[type=text] { padding: 6px; width: 55%; }
+    button { padding: 6px 12px; margin-left: 4px; }
+    #status { font-size: 0.85em; color: #888; }
+    h3 { margin: 0 0 8px; font-size: 1em; }
+    #connect-panel label { display: inline-block; width: 80px; }
   </style>
 </head>
 <body>
-  <h2>Redis Pub/Sub → WebSocket Demo</h2>
-  <p id="status">Connecting…</p>
-  <div id="messages"></div>
-  <input id="input" type="text" placeholder="Type a message" />
-  <button onclick="sendMessage()">Send</button>
+  <h2>Redis Pub/Sub + WebSocket Demo</h2>
+
+  <!-- Connect panel -->
+  <div class="panel" id="connect-panel">
+    <h3>Connect</h3>
+    <label>Username:</label>
+    <input id="username" type="text" placeholder="alice" />
+    <button onclick="connect()">Connect</button>
+    <p id="status">Not connected</p>
+  </div>
+
+  <!-- Broadcast panel -->
+  <div class="panel" id="broadcast-panel" style="display:none">
+    <h3>Broadcast — /topic/messages (all connected clients)</h3>
+    <div class="messages" id="broadcast-messages"></div>
+    <input id="broadcast-input" type="text" placeholder="Message to everyone" />
+    <button onclick="sendBroadcast()">Send</button>
+  </div>
+
+  <!-- Private message panel -->
+  <div class="panel" id="private-panel" style="display:none">
+    <h3>Private — /user/queue/messages (only you)</h3>
+    <div class="messages" id="private-messages"></div>
+    <input id="recipient" type="text" placeholder="Recipient username" style="width:25%" />
+    <input id="private-input" type="text" placeholder="Private message" />
+    <button onclick="sendPrivate()">Send</button>
+    <p style="font-size:0.8em;color:#888">
+      Tip: open a second tab with a different username to see cross-instance routing in action.
+    </p>
+  </div>
 
   <script>
-    const socket = new SockJS('/ws');
-    const stompClient = Stomp.over(socket);
+    let stompClient = null;
 
-    stompClient.connect({}, () => {
-      document.getElementById('status').textContent = 'Connected';
-      stompClient.subscribe('/topic/messages', (frame) => {
-        const div = document.createElement('div');
-        div.className = 'message';
-        div.textContent = frame.body;
-        document.getElementById('messages').appendChild(div);
+    function connect() {
+      const username = document.getElementById('username').value.trim();
+      if (!username) { alert('Enter a username'); return; }
+
+      // Pass username as query param — the server's DefaultHandshakeHandler reads it
+      // and creates a StompPrincipal, identifying this WebSocket session.
+      const socket = new SockJS('/ws?username=' + encodeURIComponent(username));
+      stompClient = Stomp.over(socket);
+      stompClient.debug = null; // suppress STOMP frame noise in console
+
+      stompClient.connect({}, () => {
+        document.getElementById('status').textContent = 'Connected as: ' + username;
+        document.getElementById('connect-panel').querySelector('button').disabled = true;
+        document.getElementById('broadcast-panel').style.display = '';
+        document.getElementById('private-panel').style.display = '';
+
+        // Subscribe to broadcast destination — receives messages sent to all clients
+        stompClient.subscribe('/topic/messages', (frame) => {
+          appendMessage('broadcast-messages', '[broadcast] ' + frame.body);
+        });
+
+        // Subscribe to user-specific destination.
+        // Spring rewrites /user/queue/messages → /queue/messages-user{sessionId}
+        // so only this session receives messages sent via convertAndSendToUser(username, ...).
+        stompClient.subscribe('/user/queue/messages', (frame) => {
+          appendMessage('private-messages', frame.body);
+        });
       });
-    });
+    }
 
-    function sendMessage() {
-      const input = document.getElementById('input');
-      const message = input.value.trim();
-      if (!message) return;
+    function sendBroadcast() {
+      const input = document.getElementById('broadcast-input');
+      const msg = input.value.trim();
+      if (!msg || !stompClient) return;
+      // POST to REST endpoint → Redis chat channel → all instances → all WebSocket clients
       fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: message
+        body: msg
       });
       input.value = '';
     }
 
-    document.getElementById('input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendMessage();
+    function sendPrivate() {
+      const recipient = document.getElementById('recipient').value.trim();
+      const input = document.getElementById('private-input');
+      const msg = input.value.trim();
+      if (!recipient || !msg || !stompClient) return;
+      // POST to REST endpoint → Redis user-messages channel → all instances →
+      // only the instance where recipient is connected delivers it
+      fetch('/api/messages/' + encodeURIComponent(recipient), {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: msg
+      });
+      input.value = '';
+    }
+
+    function appendMessage(panelId, text) {
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.textContent = text;
+      const panel = document.getElementById(panelId);
+      panel.appendChild(div);
+      panel.scrollTop = panel.scrollHeight;
+    }
+
+    // Send on Enter
+    ['broadcast-input', 'private-input'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') id === 'broadcast-input' ? sendBroadcast() : sendPrivate();
+      });
     });
   </script>
 </body>

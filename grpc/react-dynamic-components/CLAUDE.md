@@ -1,4 +1,4 @@
-# grpc-react-dynamic-components
+# grpc/react-dynamic-components
 
 > **For Claude**: Keep this file up to date whenever you change this module. Specifically:
 > - Update the API endpoints table when adding/removing endpoints
@@ -18,7 +18,7 @@ with no visibility logic of its own.
 ## How to Run
 
 ```bash
-./gradlew :grpc-react-dynamic-components:bootRun
+./gradlew :grpc:react-dynamic-components:bootRun
 ```
 
 Open `http://localhost:8080`. Use the preset buttons or type component IDs to load forms.

@@ -1,0 +1,18 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.2'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.apache.datasketches:datasketches-java:5.0.2'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

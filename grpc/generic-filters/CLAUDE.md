@@ -1,4 +1,4 @@
-# grpc-generic-filters
+# grpc/generic-filters
 
 Demonstrates generic protobuf-based field filtering over gRPC, with operator constraints declared
 directly in the proto source so any client that imports the proto sees them inline.
@@ -10,7 +10,7 @@ gRPC server: **9092** (plaintext)
 ## Running
 
 ```bash
-./gradlew :grpc-generic-filters:bootRun
+./gradlew :grpc:generic-filters:bootRun
 ```
 
 ## Architecture
@@ -219,7 +219,7 @@ grpcurl -plaintext \
 
 1. Annotate the field in `person.proto` (or a nested message) with `(filteropts.filter_opts)`,
    listing `allowed_operators` and a `description`.
-2. Run `./gradlew :grpc-generic-filters:generateProto` (or `bootRun` / `test`, which trigger it).
+2. Run `./gradlew :grpc:generic-filters:generateProto` (or `bootRun` / `test`, which trigger it).
 3. Bind the new field in **each backend's** `FieldExtractorBuilder`:
    - `InMemoryPersonRepository.EXTRACTOR` — add `.bind(Person.NEW_FIELD_NUMBER, PersonModel::newField)`
    - `AlternativePersonRepository` — add the equivalent bind for its internal model accessor
@@ -228,7 +228,7 @@ grpcurl -plaintext \
 ## Tests
 
 ```bash
-./gradlew :grpc-generic-filters:test
+./gradlew :grpc:generic-filters:test
 ```
 
 Tests use an in-process gRPC server (no real network). See:

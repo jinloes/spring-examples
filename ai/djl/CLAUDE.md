@@ -15,7 +15,7 @@ repository (the `pytorch_model.bin` file is ~476 MB).
 ### Download with Gradle (recommended)
 
 ```bash
-./gradlew :djl:downloadModel
+./gradlew :ai:djl:downloadModel
 ```
 
 This downloads all required model files from HuggingFace Hub into
@@ -39,16 +39,16 @@ Files downloaded:
 Override via environment variable or JVM arg:
 
 ```bash
-DJL_MODEL_PATH=/path/to/model ./gradlew :djl:bootRun
+DJL_MODEL_PATH=/path/to/model ./gradlew :ai:djl:bootRun
 # or
-./gradlew :djl:bootRun --args='--app.djl.model-path=/path/to/model'
+./gradlew :ai:djl:bootRun --args='--app.djl.model-path=/path/to/model'
 ```
 
 ## Running
 
 ```bash
-./gradlew :djl:downloadModel   # first time only
-./gradlew :djl:bootRun
+./gradlew :ai:djl:downloadModel   # first time only
+./gradlew :ai:djl:bootRun
 ```
 
 ### Classify a snippet
@@ -77,7 +77,7 @@ The controller tests (`CodeClassificationControllerTest`) run without the model 
 is replaced with a Mockito mock via `@MockitoBean`, so no model files are required:
 
 ```bash
-./gradlew :djl:test
+./gradlew :ai:djl:test
 ```
 
 ## Architecture

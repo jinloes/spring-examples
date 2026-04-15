@@ -8,34 +8,34 @@ Each top-level directory is a standalone example module:
 
 | Module | Description |
 |--------|-------------|
-| `djl/` | Deep Java Library (ML) integration (Gradle) |
+| `web/http2/` | HTTP/2 with Spring (Gradle) |
+| `web/loom-web/` | Project Loom virtual threads — throughput + memory comparison (Gradle) |
+| `web/webflux/` | Spring WebFlux / reactive (Gradle) |
+| `ai/djl/` | Deep Java Library — CodeBERTa language classification (Gradle) |
+| `ai/todo-mcp/` | Spring AI MCP server + client example (Gradle) |
+| `data/elasticsearch/` | Elasticsearch integration (Gradle) |
+| `data/jpa-multitenancy/` | JPA multi-tenancy patterns (Gradle) |
+| `api-doc/` | API documentation: Springdoc (annotation-driven) and REST Docs → OpenAPI (test-driven) (Gradle) |
+| `datasketches/` | Probabilistic analytics API — Theta, HLL, Quantiles, Frequency sketches (Gradle) |
 | `docker/` | Docker/containerization examples (Gradle + Maven) |
-| `elasticsearch/` | Elasticsearch integration (Gradle) |
-| `service-discovery/` | Service discovery examples: Kubernetes DNS, Consul, Spring Cloud Kubernetes (Gradle) |
 | `graphql/` | GraphQL with Spring — queries, mutations, @BatchMapping N+1 prevention (Gradle) |
 | `grpc/hello-world/` | All four gRPC patterns — unary, server/client/bidirectional streaming (Gradle) |
 | `grpc/generic-filters/` | Protobuf-driven generic field filtering over gRPC (Gradle) |
 | `grpc/react-dynamic-components/` | gRPC + React backend-driven dynamic UI (Gradle) |
 | `helm/` | Helm chart examples (Maven) |
-| `http2/` | HTTP/2 with Spring (Gradle) |
-| `jpa-multitenancy/` | JPA multi-tenancy patterns (Gradle) |
 | `jwt-common/` | JWT shared library (Gradle) |
-| `loom-web/` | Project Loom virtual threads (Gradle) |
-| `api-doc/` | API documentation: Springdoc (annotation-driven) and REST Docs → OpenAPI (test-driven) (Gradle) |
 | `messaging/` | Messaging examples: Kafka, GCP Pub/Sub, Redis pub/sub → WebSocket push (Gradle) |
+| `nextjs/` | Spring Boot + Next.js hello world (Gradle + npm) |
 | `oauth2/` | OAuth2 examples (Maven) |
 | `rate-limiting/` | Rate limiting examples (Gradle) |
 | `react/` | React + Spring integration (Maven) |
 | `retry/` | Spring Retry (Maven) |
-| `datasketches/` | Probabilistic analytics API — Theta, HLL, Quantiles, Frequency sketches (Gradle) |
-| `webflux/` | Spring WebFlux / reactive (Gradle) |
 | `salesforce-okta/` | Salesforce API integration via Okta JWT Bearer flow (Gradle) |
-| `nextjs/` | Spring Boot + Next.js hello world (Gradle + npm) |
-| `todo-mcp/` | Spring AI MCP server + client example (Gradle) |
+| `service-discovery/` | Service discovery examples: Kubernetes DNS, Consul, Spring Cloud Kubernetes (Gradle) |
 
 ## Build Systems
 
-- **Gradle** (multi-module): `api-doc`, `datasketches`, `djl`, `elasticsearch`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `http2`, `jpa-multitenancy`, `jwt-common`, `loom-web`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `todo-mcp`, `webflux`
+- **Gradle** (multi-module): `ai` (submodules: `djl`, `todo-mcp`), `api-doc`, `data` (submodules: `elasticsearch`, `jpa-multitenancy`), `datasketches`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `jwt-common`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `web` (submodules: `http2`, `loom-web`, `webflux`)
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`

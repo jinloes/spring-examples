@@ -8,7 +8,6 @@ Each top-level directory is a standalone example module:
 
 | Module | Description |
 |--------|-------------|
-| `cloud-contract/` | Spring Cloud Contract consumer/producer (Maven) |
 | `djl/` | Deep Java Library (ML) integration (Gradle) |
 | `docker/` | Docker/containerization examples (Gradle + Maven) |
 | `elasticsearch/` | Elasticsearch integration (Maven) |
@@ -41,7 +40,7 @@ Each top-level directory is a standalone example module:
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
 
-- **Maven**: `cloud-contract`, `docker`, `elasticsearch`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `theta-sketch`
+- **Maven**: `docker`, `elasticsearch`, `graphql`, `helm`, `kafka`, `oauth2`, `pubsub`, `react`, `retry`, `theta-sketch`
   - Each has its own `pom.xml`
   - Run: `mvn -f <module>/pom.xml spring-boot:run`
 

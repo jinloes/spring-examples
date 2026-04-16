@@ -1,0 +1,22 @@
+plugins {
+    id 'org.springframework.boot' version '4.0.5'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.jobrunr:jobrunr-spring-boot-4-starter:8.5.2'
+
+    runtimeOnly 'com.h2database:h2'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation group: 'org.assertj', name: 'assertj-core'
+}

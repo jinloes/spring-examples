@@ -18,6 +18,7 @@ Each top-level directory is a standalone example module:
 | `api-doc/` | API documentation: Springdoc (annotation-driven) and REST Docs → OpenAPI (test-driven) (Gradle) |
 | `datasketches/` | Probabilistic analytics API — Theta, HLL, Quantiles, Frequency sketches (Gradle) |
 | `flowable/` | Flowable BPM — loan approval workflow with service tasks, user tasks, and gateways (Gradle) |
+| `jobrunr/` | JobRunr background jobs — fire-and-forget, delayed, and recurring jobs with dashboard (Gradle) |
 | `docker/` | Docker/containerization examples (Gradle + Maven) |
 | `graphql/` | GraphQL with Spring — queries, mutations, @BatchMapping N+1 prevention (Gradle) |
 | `grpc/hello-world/` | All four gRPC patterns — unary, server/client/bidirectional streaming (Gradle) |
@@ -36,7 +37,7 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-d- **Gradle** (multi-module): `ai` (submodules: `djl`, `todo-mcp`), `api-doc`, `data` (submodules: `elasticsearch`, `jpa-multitenancy`), `datasketches`, `flowable`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `jwt-common`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `web` (submodules: `http2`, `loom-web`, `webflux`)
+d- **Gradle** (multi-module): `ai` (submodules: `djl`, `todo-mcp`), `api-doc`, `data` (submodules: `elasticsearch`, `jpa-multitenancy`), `datasketches`, `flowable`, `jobrunr`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `jwt-common`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `web` (submodules: `http2`, `loom-web`, `webflux`)
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`
@@ -61,6 +62,10 @@ d- **Gradle** (multi-module): `ai` (submodules: `djl`, `todo-mcp`), `api-doc`, `
 
 - Do NOT auto-commit changes — only commit when explicitly asked
 - Do NOT include `Co-Authored-By` lines in commit messages
+
+## Versions
+
+- **Spring Boot**: always use the latest stable release — currently **4.0.5**. Check Maven Central (`https://search.maven.org/artifact/org.springframework.boot/spring-boot-starter-web`) before creating or upgrading a module.
 
 ## Conventions
 

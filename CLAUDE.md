@@ -17,6 +17,7 @@ Each top-level directory is a standalone example module:
 | `data/jpa-multitenancy/` | JPA multi-tenancy patterns (Gradle) |
 | `api-doc/` | API documentation: Springdoc (annotation-driven) and REST Docs → OpenAPI (test-driven) (Gradle) |
 | `datasketches/` | Probabilistic analytics API — Theta, HLL, Quantiles, Frequency sketches (Gradle) |
+| `flowable/` | Flowable BPM — loan approval workflow with service tasks, user tasks, and gateways (Gradle) |
 | `docker/` | Docker/containerization examples (Gradle + Maven) |
 | `graphql/` | GraphQL with Spring — queries, mutations, @BatchMapping N+1 prevention (Gradle) |
 | `grpc/hello-world/` | All four gRPC patterns — unary, server/client/bidirectional streaming (Gradle) |
@@ -35,7 +36,7 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-- **Gradle** (multi-module): `ai` (submodules: `djl`, `todo-mcp`), `api-doc`, `data` (submodules: `elasticsearch`, `jpa-multitenancy`), `datasketches`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `jwt-common`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `web` (submodules: `http2`, `loom-web`, `webflux`)
+d- **Gradle** (multi-module): `ai` (submodules: `djl`, `todo-mcp`), `api-doc`, `data` (submodules: `elasticsearch`, `jpa-multitenancy`), `datasketches`, `flowable`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `jwt-common`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `web` (submodules: `http2`, `loom-web`, `webflux`)
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`

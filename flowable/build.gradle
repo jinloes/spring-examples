@@ -1,0 +1,58 @@
+import com.github.gradle.node.npm.task.NpmTask
+
+plugins {
+    id 'org.springframework.boot' version '3.4.2'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
+    // Downloads and manages Node automatically — no system Node dependency required
+    id 'com.github.node-gradle.node' version '7.1.0'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+// gradle-node-plugin: download Node 20 and run all npm tasks from frontend/
+node {
+    version = '20.18.0'
+    download = true
+    nodeProjectDir = file("$projectDir/frontend")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.flowable:flowable-spring-boot-starter:7.1.0'
+
+    runtimeOnly 'com.h2database:h2'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation group: 'org.assertj', name: 'assertj-core'
+}
+
+// ── Frontend build ───────────────────────────────────────────────────────────
+
+tasks.register('installFrontend', NpmTask) {
+    description = 'Install frontend npm dependencies'
+    args = ['install']
+    inputs.file "$projectDir/frontend/package.json"
+    outputs.dir "$projectDir/frontend/node_modules"
+}
+
+tasks.register('buildFrontend', NpmTask) {
+    description = 'Build the React/Vite frontend'
+    dependsOn 'installFrontend'
+    args = ['run', 'build']
+    inputs.dir "$projectDir/frontend/src"
+    inputs.file "$projectDir/frontend/index.html"
+    outputs.dir "$projectDir/frontend/dist"
+}
+
+// Copy Vite dist output into the JAR under static/ so Spring Boot serves it at /
+processResources {
+    dependsOn 'buildFrontend'
+    from("$projectDir/frontend/dist") {
+        into 'static'
+    }
+}

@@ -23,5 +23,6 @@ include(
         ":service-discovery:spring-cloud-kubernetes",
         ":datasketches",
         ":salesforce-okta",
-        ":nextjs"
+        ":nextjs",
+        ":flowable"
 )

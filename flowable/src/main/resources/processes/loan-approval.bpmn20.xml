@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Loan Approval Process
+  ─────────────────────
+  Start ──► Credit Score Check ──► [Gateway: score?]
+                                      │ >= 700 ──────────────────────► Auto Approve ──► End
+                                      │ 500-699 ──► Manager Review ──► [Gateway: decision?]
+                                      │                                   │ approved ──► Notify Approval ──► End
+                                      │                                   └ rejected ──► Notify Rejection ──► End
+                                      └ < 500 ───────────────────────► Auto Reject ──► End
+-->
+<definitions
+    xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:flowable="http://flowable.org/bpmn"
+    targetNamespace="http://flowable.org/processdef">
+
+  <process id="loanApproval" name="Loan Approval Process" isExecutable="true">
+
+    <!-- ── Start ─────────────────────────────────────────────────────── -->
+
+    <startEvent id="startEvent" name="Loan Application Submitted"/>
+
+    <sequenceFlow id="toScoreCheck" sourceRef="startEvent" targetRef="scoreCheck"/>
+
+    <!-- ── Service Task: calculate credit score ───────────────────────
+         Calls CreditScoreDelegate (Spring bean "creditScoreDelegate").
+         Sets process variable: creditScore (int).                       -->
+
+    <serviceTask id="scoreCheck" name="Calculate Credit Score"
+                 flowable:delegateExpression="${creditScoreDelegate}"/>
+
+    <sequenceFlow id="toCreditGateway" sourceRef="scoreCheck" targetRef="creditGateway"/>
+
+    <!-- ── Gateway: route by credit score ────────────────────────────── -->
+
+    <exclusiveGateway id="creditGateway" name="Credit Score Gateway"/>
+
+    <!-- High score: auto-approve -->
+    <sequenceFlow id="toAutoApprove" sourceRef="creditGateway" targetRef="autoApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${creditScore >= 700}]]></conditionExpression>
+    </sequenceFlow>
+
+    <!-- Borderline score: escalate to a human -->
+    <sequenceFlow id="toManualReview" sourceRef="creditGateway" targetRef="manualReview">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${creditScore >= 500 && creditScore < 700}]]></conditionExpression>
+    </sequenceFlow>
+
+    <!-- Low score: auto-reject -->
+    <sequenceFlow id="toAutoReject" sourceRef="creditGateway" targetRef="autoReject">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${creditScore < 500}]]></conditionExpression>
+    </sequenceFlow>
+
+    <!-- ── Service Task: auto-approve high-score applications ─────────── -->
+
+    <serviceTask id="autoApprove" name="Auto Approve"
+                 flowable:delegateExpression="${approvalNotificationDelegate}"/>
+
+    <!-- ── User Task: manager reviews borderline applications ───────────
+         Process pauses here until POST /loans/tasks/{taskId}/complete is
+         called with {"approved": true} or {"approved": false}.           -->
+
+    <userTask id="manualReview" name="Manager Review" flowable:assignee="manager">
+      <documentation>
+        Review the loan application details and set the 'approved' variable
+        to true (approve) or false (reject) when completing this task.
+      </documentation>
+    </userTask>
+
+    <!-- ── Service Task: auto-reject low-score applications ──────────── -->
+
+    <serviceTask id="autoReject" name="Auto Reject"
+                 flowable:delegateExpression="${rejectionNotificationDelegate}"/>
+
+    <sequenceFlow id="autoApproveToEnd" sourceRef="autoApprove" targetRef="endEvent"/>
+    <sequenceFlow id="autoRejectToEnd" sourceRef="autoReject" targetRef="endEvent"/>
+    <sequenceFlow id="toManagerGateway" sourceRef="manualReview" targetRef="managerGateway"/>
+
+    <!-- ── Gateway: route by manager decision ────────────────────────── -->
+
+    <exclusiveGateway id="managerGateway" name="Manager Decision Gateway"/>
+
+    <sequenceFlow id="toApproveNotify" sourceRef="managerGateway" targetRef="approveNotify">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == true}]]></conditionExpression>
+    </sequenceFlow>
+
+    <sequenceFlow id="toRejectNotify" sourceRef="managerGateway" targetRef="rejectNotify">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == false}]]></conditionExpression>
+    </sequenceFlow>
+
+    <!-- ── Service Tasks: post-review notifications ───────────────────── -->
+
+    <serviceTask id="approveNotify" name="Send Approval Notification"
+                 flowable:delegateExpression="${approvalNotificationDelegate}"/>
+
+    <serviceTask id="rejectNotify" name="Send Rejection Notification"
+                 flowable:delegateExpression="${rejectionNotificationDelegate}"/>
+
+    <sequenceFlow id="approveNotifyToEnd" sourceRef="approveNotify" targetRef="endEvent"/>
+    <sequenceFlow id="rejectNotifyToEnd" sourceRef="rejectNotify" targetRef="endEvent"/>
+
+    <!-- ── End ───────────────────────────────────────────────────────── -->
+
+    <endEvent id="endEvent" name="Process Complete"/>
+
+  </process>
+</definitions>

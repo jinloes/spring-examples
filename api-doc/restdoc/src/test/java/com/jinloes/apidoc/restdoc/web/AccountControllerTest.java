@@ -10,16 +10,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinloes.apidoc.restdoc.model.CreateAccountRequest;
 import java.util.UUID;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.restdocs.test.autoconfigure.AutoConfigureRestDocs;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Each test calls {@code document()} with a {@code resource()} snippet. The snippets are written to

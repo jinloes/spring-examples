@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinloes.todo.domain.Todo;
 import com.jinloes.todo.repository.TodoRepository;
 import com.jinloes.todo.service.TodoService;
@@ -19,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(TodoController.class)
 @Import(TodoService.class)

@@ -16,9 +16,7 @@ public class JwtService {
   private final JwtParser jwtParser;
 
   public JwtService(PublicKey jwtPublicKey) {
-    this.jwtParser = Jwts.parser()
-        .verifyWith(jwtPublicKey)
-        .build();
+    this.jwtParser = Jwts.parser().verifyWith(jwtPublicKey).build();
   }
 
   public boolean isTokenValid(String token) {
@@ -41,7 +39,6 @@ public class JwtService {
   }
 
   public Claims getClaims(String token) {
-    return jwtParser.parseSignedClaims(token)
-        .getPayload();
+    return jwtParser.parseSignedClaims(token).getPayload();
   }
 }

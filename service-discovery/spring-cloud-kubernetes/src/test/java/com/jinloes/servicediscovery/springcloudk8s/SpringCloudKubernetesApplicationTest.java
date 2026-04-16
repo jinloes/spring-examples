@@ -59,7 +59,9 @@ class SpringCloudKubernetesApplicationTest {
     restClient = RestClient.builder().baseUrl("http://localhost:" + port).build();
   }
 
-  /** Creates a Service in K3s before tests run so discovery returns more than the cluster default. */
+  /**
+   * Creates a Service in K3s before tests run so discovery returns more than the cluster default.
+   */
   @BeforeAll
   static void createTestService() throws IOException, InterruptedException {
     K3S.execInContainer(
@@ -116,8 +118,7 @@ class SpringCloudKubernetesApplicationTest {
     ApiClient k3sApiClient() throws IOException {
       ApiClient client =
           Config.fromConfig(
-              new ByteArrayInputStream(
-                  K3S.getKubeConfigYaml().getBytes(StandardCharsets.UTF_8)));
+              new ByteArrayInputStream(K3S.getKubeConfigYaml().getBytes(StandardCharsets.UTF_8)));
       // Also set as the global default so any code using Configuration.getDefaultApiClient()
       // (outside of the Spring bean graph) also points at K3s
       Configuration.setDefaultApiClient(client);

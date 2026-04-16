@@ -24,9 +24,9 @@ import org.springframework.web.client.RestClient;
  * setting them via {@code properties} here exactly matches what the controller reads at runtime
  * inside a cluster.
  *
- * <p>NOTE: The {@code /api/call/{serviceName}} endpoint resolves
- * {@code <name>.default.svc.cluster.local} via CoreDNS. CoreDNS is only reachable from inside the
- * cluster, so that endpoint can only be fully tested by deploying the app as a pod in K3s/K8s.
+ * <p>NOTE: The {@code /api/call/{serviceName}} endpoint resolves {@code
+ * <name>.default.svc.cluster.local} via CoreDNS. CoreDNS is only reachable from inside the cluster,
+ * so that endpoint can only be fully tested by deploying the app as a pod in K3s/K8s.
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

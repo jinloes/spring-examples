@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.4.4'
+    id 'org.springframework.boot' version '4.0.5'
     id 'io.spring.dependency-management' apply true
     id 'java'
 }
@@ -20,6 +20,7 @@ dependencies {
     annotationProcessor group: 'org.projectlombok', name: 'lombok'
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-webflux-test'
     testImplementation group: 'org.assertj', name: 'assertj-core'
     testImplementation group: 'io.gatling.highcharts', name: 'gatling-charts-highcharts', version: '3.13.5'
 }

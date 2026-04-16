@@ -1,7 +1,5 @@
 package com.jinloes.messaging.redis.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinloes.messaging.redis.config.RedisConfig;
 import com.jinloes.messaging.redis.model.UserMessage;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -46,7 +46,7 @@ public class MessageController {
   @PostMapping("/{username}")
   @ResponseStatus(HttpStatus.ACCEPTED)
   public void sendToUser(@PathVariable String username, @RequestBody String message)
-      throws JsonProcessingException {
+      throws JacksonException {
     String envelope = objectMapper.writeValueAsString(new UserMessage(username, message));
     redisTemplate.convertAndSend(RedisConfig.USER_MESSAGES_CHANNEL, envelope);
     log.info("Published user message to Redis for '{}': {}", username, message);

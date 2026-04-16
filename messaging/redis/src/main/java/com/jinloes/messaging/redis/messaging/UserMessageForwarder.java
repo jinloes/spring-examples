@@ -1,12 +1,12 @@
 package com.jinloes.messaging.redis.messaging;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jinloes.messaging.redis.model.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Receives user-targeted messages from the Redis {@code user-messages} channel and delivers them to

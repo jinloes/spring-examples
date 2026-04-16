@@ -24,5 +24,6 @@ include(
         ":datasketches",
         ":salesforce-okta",
         ":nextjs",
-        ":flowable"
+        ":flowable",
+        ":jobrunr"
 )

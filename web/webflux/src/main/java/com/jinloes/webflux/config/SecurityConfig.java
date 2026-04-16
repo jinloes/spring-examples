@@ -50,16 +50,22 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http,
-      ReactiveAuthenticationManager authenticationManager, ServerAuthenticationConverter authenticationConverter) {
-    AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(authenticationManager);
+  public SecurityWebFilterChain securityFilterChain(
+      ServerHttpSecurity http,
+      ReactiveAuthenticationManager authenticationManager,
+      ServerAuthenticationConverter authenticationConverter) {
+    AuthenticationWebFilter authenticationWebFilter =
+        new AuthenticationWebFilter(authenticationManager);
     authenticationWebFilter.setServerAuthenticationConverter(authenticationConverter);
 
     return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .authorizeExchange(customizer ->
-            customizer
-                .pathMatchers(HttpMethod.GET, "/actuator/health").permitAll()
-                .anyExchange().authenticated())
+        .authorizeExchange(
+            customizer ->
+                customizer
+                    .pathMatchers(HttpMethod.GET, "/actuator/health")
+                    .permitAll()
+                    .anyExchange()
+                    .authenticated())
         .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
         .exceptionHandling(Customizer.withDefaults())
         .build();

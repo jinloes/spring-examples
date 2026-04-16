@@ -1,7 +1,7 @@
 package com.jinloes.webflux.web;
 
-import com.jinloes.webflux.service.AlertService;
 import com.jinloes.webflux.model.Alert;
+import com.jinloes.webflux.service.AlertService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,11 +18,12 @@ import reactor.core.publisher.Mono;
 public class AlertController {
   private final AlertService alertService;
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public Mono<ResponseEntity<Alert>> create(@RequestBody Mono<Alert> request) {
-    return request.map(alertService::createAlert)
-        .map(alert -> ResponseEntity.status(HttpStatus.CREATED)
-            .body(alert)
-        );
+    return request
+        .map(alertService::createAlert)
+        .map(alert -> ResponseEntity.status(HttpStatus.CREATED).body(alert));
   }
 }

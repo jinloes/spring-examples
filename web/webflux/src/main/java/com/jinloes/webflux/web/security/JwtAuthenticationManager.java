@@ -15,11 +15,11 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
     return Mono.just(authentication)
         .cast(JwtToken.class)
         .filter(jwtToken -> jwtService.isTokenValid(jwtToken.getToken()))
-        .map(jwtToken -> {
-          jwtToken.setAuthenticated(true);
-          return (Authentication) jwtToken;
-        })
+        .map(
+            jwtToken -> {
+              jwtToken.setAuthenticated(true);
+              return (Authentication) jwtToken;
+            })
         .switchIfEmpty(Mono.error(new IllegalArgumentException("Token was not valid.")));
-
   }
 }

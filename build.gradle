@@ -26,7 +26,7 @@ subprojects {
 
         dependencyManagement {
             imports {
-                mavenBom 'org.testcontainers:testcontainers-bom:2.0.4'
+                mavenBom 'org.testcontainers:testcontainers-bom:1.21.3'
             }
             dependencies {
                 dependencySet(group: 'org.junit.jupiter', version: '6.0.3') {
@@ -39,11 +39,7 @@ subprojects {
                     entry 'junit-platform-engine'
                     entry 'junit-platform-launcher'
                 }
-                dependencySet(group: 'com.fasterxml.jackson.core', version: '2.18.2') {
-                    entry 'jackson-core'
-                    entry 'jackson-databind'
-                }
-                dependencySet(group: 'io.jsonwebtoken', version: '0.12.6') {
+dependencySet(group: 'io.jsonwebtoken', version: '0.12.6') {
                     entry 'jjwt-api'
                     entry 'jjwt-impl'
                     entry 'jjwt-jackson'

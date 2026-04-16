@@ -22,8 +22,7 @@ public class ServiceDiscoveryController {
 
   @GetMapping("/hello")
   public String hello() {
-    return "Hello from %s"
-        .formatted(environment.getProperty("spring.application.name", "unknown"));
+    return "Hello from %s".formatted(environment.getProperty("spring.application.name", "unknown"));
   }
 
   // Demonstrates calling another service using Kubernetes DNS.

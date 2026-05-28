@@ -1,0 +1,14 @@
+# Gemini chat model — default profile.
+#
+# Free-tier quota is tight (per-day request limits as low as 20 for some models). For sustained
+# dev work, either enable billing on the GCP project or switch to the `lm-studio` profile.
+langchain4j:
+  google-ai-gemini:
+    chat-model:
+      api-key: ${GEMINI_API_KEY:demo}
+      # gemini-2.5-flash-lite is the most generous free-tier model as of early 2026.
+      model-name: ${GEMINI_MODEL:gemini-2.5-flash-lite}
+      temperature: 0.0
+      # Honor Gemini's retryDelay header on transient 429/503 bursts.
+      max-retries: 3
+      log-requests-and-responses: false

@@ -3,6 +3,7 @@ include(
         ":web:loom-web",
         ":web:webflux",
         ":ai:djl",
+        ":ai:langgraph",
         ":ai:todo-mcp:server",
         ":ai:todo-mcp:client",
         ":data:elasticsearch",

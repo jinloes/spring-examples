@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: langgraph-support-triage
+  config:
+    # Loads ai/langgraph/.env when present so GEMINI_API_KEY / LANGSMITH_API_KEY etc. don't need
+    # to be exported in the shell. `optional:` makes the missing-file case a no-op; the
+    # `[.properties]` suffix forces the dotfile to be parsed in properties format.
+    import: optional:file:.env[.properties]
+  profiles:
+    # Chat-model configuration lives in application-{profile}.yml. Switch to LM Studio with
+    # SPRING_PROFILES_ACTIVE=lm-studio in your .env (or as a shell env var).
+    #
+    # Why the explicit placeholder instead of `spring.profiles.default: gemini`?
+    # Properties loaded from a file via `spring.config.import` are NOT subject to the
+    # SCREAMING_SNAKE -> dotted relaxed-binding rules that apply to OS env vars. So
+    # `SPRING_PROFILES_ACTIVE=lm-studio` in .env arrives as a literal property of that name
+    # and Spring's profile resolver, which only looks up `spring.profiles.active`, misses it.
+    # Reading the SCREAMING_SNAKE name explicitly here makes both .env and the OS env var
+    # work, with `gemini` as the fallback.
+    active: ${SPRING_PROFILES_ACTIVE:gemini}
+
+server:
+  port: 8087
+
+# LangSmith run ingestion (https://docs.smith.langchain.com/observability/how_to_guides/log_traces_with_api_directly).
+# Set LANGSMITH_API_KEY to enable; otherwise the listener is a no-op and the app still runs.
+langsmith:
+  enabled: ${LANGSMITH_ENABLED:true}
+  endpoint: ${LANGSMITH_ENDPOINT:https://api.smith.langchain.com}
+  api-key: ${LANGSMITH_API_KEY:}
+  project: ${LANGSMITH_PROJECT:spring-examples-langgraph}
+
+logging:
+  level:
+    com.jinloes.langgraph: INFO
+    dev.langchain4j: WARN
+    org.bsc.langgraph4j: INFO

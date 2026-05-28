@@ -1,0 +1,167 @@
+plugins {
+    id 'org.springframework.boot' version '4.0.5'
+    id 'io.spring.dependency-management' apply true
+    id 'java'
+}
+
+group 'com.jinloes'
+version '1.0-SNAPSHOT'
+
+ext {
+    langchain4jStable = '1.15.0'
+    langchain4jBeta   = '1.15.0-beta25'
+    langgraph4j       = '1.8.17'
+}
+
+dependencyManagement {
+    imports {
+        // LangChain4j stable BOM pins langchain4j core artifacts to 1.15.0 — overrides the
+        // 1.14.1 transitive that langgraph4j-langchain4j would otherwise pull in.
+        mavenBom "dev.langchain4j:langchain4j-bom:${langchain4jStable}"
+        mavenBom "org.bsc.langgraph4j:langgraph4j-bom:${langgraph4j}"
+        // NOTE: there is no langchain4j-spring-bom for the 1.x beta line — latest published
+        // is 1.0.0-beta5 (May 2025). Spring Boot 4 starter versions are pinned explicitly
+        // below until upstream publishes a current Spring BOM.
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Two chat-model starters; only one is wired at runtime based on which profile is active
+    // (see application-gemini.yml and application-lm-studio.yml). Each starter creates a
+    // ChatModel bean only when its api-key property is set, so they coexist on the classpath.
+    //
+    // Exclude langchain4j-http-client-jdk from the Gemini starter — the open-ai starter already
+    // brings the Spring RestClient HTTP client, and having both on the classpath triggers
+    // "multiple HTTP clients have been found" at ChatModel construction time.
+    implementation("dev.langchain4j:langchain4j-google-ai-gemini-spring-boot4-starter:${langchain4jBeta}") {
+        exclude group: 'dev.langchain4j', module: 'langchain4j-http-client-jdk'
+    }
+    implementation "dev.langchain4j:langchain4j-open-ai-spring-boot4-starter:${langchain4jBeta}"
+
+    // LangGraph4j: framework-agnostic state-graph runtime + LC4j helpers
+    // (tool service, message channels, JSON state serializer).
+    implementation 'org.bsc.langgraph4j:langgraph4j-core'
+    implementation 'org.bsc.langgraph4j:langgraph4j-langchain4j'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+    // Apache HttpClient 5. Without this we'd fall through to JDK 21's java.net.http.HttpClient,
+    // which speculatively sends `Upgrade: h2c` + `HTTP2-Settings` headers on every http://
+    // request. LM Studio's HTTP server doesn't handle the h2c upgrade dance and hangs
+    // indefinitely waiting for an HTTP/2 frame that never arrives. langchain4j's
+    // SpringRestClient delegates HTTP-client selection to Spring Boot's
+    // ClientHttpRequestFactoryBuilder.detect(), which prefers HttpClient5 when on classpath.
+    // Apache HttpClient5 is HTTP/1.1 by default and never sends speculative upgrade headers.
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+}
+
+// ────────────────────────────────────────────────────────────────────────────────────────────
+// LM Studio bootstrap
+// ────────────────────────────────────────────────────────────────────────────────────────────
+// When the lm-studio profile is active, ./gradlew :ai:langgraph:bootRun makes sure the LM Studio
+// daemon is running with the right model loaded before the Spring app starts. This means a
+// fresh checkout can do `SPRING_PROFILES_ACTIVE=lm-studio ./gradlew :ai:langgraph:bootRun` and
+// the setup is automatic.
+//
+// Caveats:
+//   - Only fires from the gradle CLI. IntelliJ's Spring Boot run config invokes the main class
+//     directly and bypasses these tasks; for IDE workflows, start LM Studio manually or add a
+//     `./gradlew ensureLmStudio` Before Launch step.
+//   - When the gemini (default) profile is active, every task here is skipped via onlyIf — you
+//     don't need LM Studio installed to use Gemini.
+
+def lmsExe = "${System.getProperty('user.home')}/.lmstudio/bin/lms"
+
+/** Read a value from env vars first, then from the module's .env file, then a hard fallback. */
+def envOrDotenv = { String key, String fallback ->
+    def value = System.getenv(key)
+    if (value != null && !value.isEmpty()) return value
+    def envFile = file('.env')
+    if (envFile.exists()) {
+        def line = envFile.text.readLines().find { it.trim().startsWith("${key}=") }
+        if (line != null) return line.substring(line.indexOf('=') + 1).trim()
+    }
+    return fallback
+}
+
+def isLmStudioProfile = {
+    envOrDotenv('SPRING_PROFILES_ACTIVE', '').contains('lm-studio')
+}
+
+def lmsModel = envOrDotenv('LM_STUDIO_MODEL', 'qwen/qwen3.6-35b-a3b')
+def lmsContextLength = 8192
+def lmsParallel = 1
+
+/**
+ * lms load is NOT idempotent — every invocation spawns another slot (:2, :3, ...) of the same
+ * model rather than reusing the existing one. Ask `lms ps --json` whether the model is already
+ * loaded with matching context + parallelism. If it is, skip both unload and load.
+ */
+def lmStudioModelAlreadyLoaded = {
+    if (!new File(lmsExe).exists()) return false
+    try {
+        def proc = new ProcessBuilder(lmsExe, 'ps', '--json').redirectErrorStream(true).start()
+        def output = proc.inputStream.text
+        if (proc.waitFor() != 0) return false
+        def loaded = new groovy.json.JsonSlurper().parseText(output)
+        return loaded.any {
+            it.modelKey == lmsModel &&
+                    it.contextLength == lmsContextLength &&
+                    it.parallel == lmsParallel
+        }
+    } catch (Exception ignored) {
+        return false
+    }
+}
+
+tasks.register('checkLmStudioCli') {
+    onlyIf { isLmStudioProfile() }
+    doFirst {
+        if (!new File(lmsExe).exists()) {
+            throw new GradleException(
+                    "LM Studio CLI not found at ${lmsExe}.\n" +
+                    "Install LM Studio from https://lmstudio.ai/ then run `lms bootstrap` to\n" +
+                    "install the CLI shim. Alternatively unset SPRING_PROFILES_ACTIVE to fall\n" +
+                    "back to the Gemini profile.")
+        }
+    }
+}
+
+tasks.register('startLmStudioServer', Exec) {
+    dependsOn 'checkLmStudioCli'
+    onlyIf { isLmStudioProfile() }
+    commandLine lmsExe, 'server', 'start'
+}
+
+tasks.register('unloadLmStudioModel', Exec) {
+    dependsOn 'startLmStudioServer'
+    // Skip both unload and load when the right model is already in memory at the right config.
+    onlyIf { isLmStudioProfile() && !lmStudioModelAlreadyLoaded() }
+    commandLine lmsExe, 'unload', '--all'
+    ignoreExitValue = true
+}
+
+tasks.register('loadLmStudioModel', Exec) {
+    dependsOn 'unloadLmStudioModel'
+    onlyIf { isLmStudioProfile() && !lmStudioModelAlreadyLoaded() }
+    commandLine lmsExe, 'load', lmsModel,
+            '-c', lmsContextLength.toString(),
+            '--parallel', lmsParallel.toString(),
+            '--yes'
+}
+
+tasks.register('ensureLmStudio') {
+    group = 'application'
+    description = "Ensure LM Studio is running with ${lmsModel} loaded (lm-studio profile only)."
+    dependsOn 'loadLmStudioModel'
+}
+
+tasks.named('bootRun') {
+    dependsOn 'ensureLmStudio'
+}

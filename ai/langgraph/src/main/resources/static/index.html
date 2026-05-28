@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support Triage</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #e3e5e8;
+      --user: #2563eb;
+      --user-fg: #ffffff;
+      --bot: #f1f3f5;
+      --bot-fg: #1a1d21;
+      --muted: #6b7280;
+      --accent: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--bot-fg);
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      padding: 12px 20px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    header .session {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+    header button {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    header button:hover { background: var(--bg); }
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      overflow: hidden;
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 4px 12px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .welcome {
+      align-self: center;
+      max-width: 540px;
+      margin-top: 32px;
+      text-align: center;
+      color: var(--bot-fg);
+    }
+    .welcome h2 { font-size: 18px; margin: 0 0 6px 0; font-weight: 600; }
+    .welcome p { color: var(--muted); font-size: 14px; margin: 0 0 18px 0; line-height: 1.5; }
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .suggestion {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.1s, border-color 0.1s;
+      text-align: left;
+    }
+    .suggestion:hover { background: var(--bg); border-color: var(--user); }
+    .suggestion-cat {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .msg {
+      max-width: 78%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      line-height: 1.45;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .msg.user {
+      background: var(--user);
+      color: var(--user-fg);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.bot {
+      background: var(--bot);
+      color: var(--bot-fg);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .msg.bot .meta {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+    .intent {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-right: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .intent.refund { background: #ede9fe; color: #6d28d9; }
+    .intent.technical { background: #dbeafe; color: #1e40af; }
+    .intent.billing { background: #d1fae5; color: #065f46; }
+    .intent.clarify { background: #fef3c7; color: #92400e; }
+    .intent.escalate { background: #fee2e2; color: #991b1b; }
+    .intent.unknown { background: #e5e7eb; color: #374151; }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-self: flex-start;
+      max-width: 78%;
+      margin-top: -2px;
+    }
+    .actions .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .action-btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .action-btn:hover { background: var(--bg); border-color: var(--user); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .action-filter {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      font: inherit;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .action-filter:focus { outline: 2px solid var(--user); outline-offset: -1px; }
+    .action-options {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .action-input-form {
+      display: flex;
+      gap: 6px;
+    }
+    .action-input-form input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 13px;
+      background: var(--panel);
+    }
+    .action-input-form input:focus { outline: 2px solid var(--user); outline-offset: -1px; }
+    .action-input-form button {
+      padding: 0 16px;
+      background: var(--user);
+      color: var(--user-fg);
+      border: none;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .action-input-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .typing { color: var(--muted); font-style: italic; }
+    .typing::after {
+      content: "";
+      display: inline-block;
+      animation: dots 1.4s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%, 20% { content: ""; }
+      40% { content: "."; }
+      60% { content: ".."; }
+      80%, 100% { content: "..."; }
+    }
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    form {
+      display: flex;
+      gap: 8px;
+      padding: 12px 4px 4px 4px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+    textarea {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 14px;
+      resize: none;
+      min-height: 44px;
+      max-height: 160px;
+      background: var(--panel);
+    }
+    textarea:focus { outline: 2px solid var(--user); outline-offset: -1px; }
+    button[type=submit] {
+      padding: 0 20px;
+      background: var(--user);
+      color: var(--user-fg);
+      border: none;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button[type=submit]:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Support Triage</h1>
+    <span class="session" id="session-label"></span>
+    <button id="new-conversation" title="Start a new session (clears agent memory on the server side too — for that session only)">New conversation</button>
+  </header>
+  <main>
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <h2>Support Triage</h2>
+        <p>I can help with <strong>refunds</strong> (mention an order id), <strong>technical issues</strong> (login, API tokens, rate limits, sync), or <strong>billing</strong> questions. Click a suggestion or type your own.</p>
+        <div class="suggestions">
+          <button class="suggestion" data-text="I want a refund"><span class="suggestion-cat">refund</span>I want a refund</button>
+          <button class="suggestion" data-text="I can't log in — how do I reset my password?"><span class="suggestion-cat">technical</span>Reset my password</button>
+          <button class="suggestion" data-text="What's the API rate limit?"><span class="suggestion-cat">technical</span>API rate limit</button>
+          <button class="suggestion" data-text="What plan is alice@example.com on?"><span class="suggestion-cat">billing</span>Check account plan</button>
+        </div>
+      </div>
+    </div>
+    <form id="form">
+      <textarea id="input" placeholder="Type a message. Enter to send, Shift+Enter for newline." autofocus></textarea>
+      <button type="submit" id="send">Send</button>
+    </form>
+  </main>
+
+  <script>
+    const messagesEl = document.getElementById("messages");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+    const sessionLabel = document.getElementById("session-label");
+    const newConvoBtn = document.getElementById("new-conversation");
+
+    let sessionId = null;
+
+    function updateSessionLabel() {
+      sessionLabel.textContent = sessionId ? `session ${sessionId.slice(0, 8)}…` : "no session";
+    }
+
+    const welcomeEl = document.getElementById("welcome");
+
+    function hideWelcome() {
+      if (welcomeEl && welcomeEl.parentNode) welcomeEl.remove();
+    }
+
+    function appendMessage(role, text, meta) {
+      hideWelcome();
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      if (meta && role === "bot") {
+        const m = document.createElement("span");
+        m.className = "meta";
+        if (meta.intent) {
+          const badge = document.createElement("span");
+          badge.className = `intent ${meta.intent}`;
+          badge.textContent = meta.intent;
+          m.appendChild(badge);
+        }
+        if (meta.traceId) {
+          m.appendChild(document.createTextNode("trace " + meta.traceId.slice(0, 8) + "…"));
+        }
+        div.appendChild(m);
+      }
+      const body = document.createElement("span");
+      body.textContent = text;
+      div.appendChild(body);
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return div;
+    }
+
+    function appendActions(actions) {
+      if (!actions || actions.length === 0) return;
+      for (const action of actions) {
+        if (action.type === "input") {
+          appendInputAction(action);
+        } else {
+          // Default to "select" for backwards compat / unknown types.
+          appendSelectAction(action);
+        }
+      }
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function appendSelectAction(action) {
+      const wrap = document.createElement("div");
+      wrap.className = "actions";
+      if (action.prompt) {
+        const lbl = document.createElement("div");
+        lbl.className = "label";
+        lbl.textContent = action.prompt;
+        wrap.appendChild(lbl);
+      }
+      const options = action.options || [];
+      // Show a filter input when there are enough options to make filtering worthwhile.
+      let filter = null;
+      if (options.length > 3) {
+        filter = document.createElement("input");
+        filter.type = "text";
+        filter.className = "action-filter";
+        filter.placeholder = `Filter ${options.length} options…`;
+        wrap.appendChild(filter);
+      }
+      const list = document.createElement("div");
+      list.className = "action-options";
+      const buttons = [];
+      for (const opt of options) {
+        const btn = document.createElement("button");
+        btn.className = "action-btn";
+        btn.textContent = opt.label || opt.value;
+        btn.dataset.search = (opt.label + " " + opt.value).toLowerCase();
+        btn.addEventListener("click", () => {
+          wrap.querySelectorAll(".action-btn").forEach((b) => (b.disabled = true));
+          if (filter) filter.disabled = true;
+          send(opt.value, opt.label);
+        });
+        list.appendChild(btn);
+        buttons.push(btn);
+      }
+      wrap.appendChild(list);
+      if (filter) {
+        filter.addEventListener("input", () => {
+          const q = filter.value.trim().toLowerCase();
+          for (const b of buttons) {
+            b.style.display = !q || b.dataset.search.includes(q) ? "" : "none";
+          }
+        });
+      }
+      messagesEl.appendChild(wrap);
+    }
+
+    function appendInputAction(action) {
+      const wrap = document.createElement("div");
+      wrap.className = "actions";
+      if (action.prompt) {
+        const lbl = document.createElement("div");
+        lbl.className = "label";
+        lbl.textContent = action.prompt;
+        wrap.appendChild(lbl);
+      }
+      const form = document.createElement("form");
+      form.className = "action-input-form";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.placeholder = action.placeholder || "";
+      const btn = document.createElement("button");
+      btn.type = "submit";
+      btn.textContent = "Send";
+      form.appendChild(inp);
+      form.appendChild(btn);
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const value = inp.value.trim();
+        if (!value) return;
+        inp.disabled = true;
+        btn.disabled = true;
+        send(value);
+      });
+      wrap.appendChild(form);
+      messagesEl.appendChild(wrap);
+    }
+
+    function appendTyping() {
+      const div = document.createElement("div");
+      div.className = "msg bot typing";
+      div.textContent = "thinking";
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return div;
+    }
+
+    // `text` is what gets POSTed to /triage (drives the classifier + agents).
+    // `displayText`, when provided, is what shows in the chat bubble — used for action
+    // buttons whose value is a long classifier-friendly sentence ("I'd like to manually enter
+    // the order id to refund") but whose user-facing label is short ("Enter manually").
+    async function send(text, displayText) {
+      sendBtn.disabled = true;
+      input.disabled = true;
+      appendMessage("user", displayText || text);
+      const typing = appendTyping();
+      try {
+        const res = await fetch("/triage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ inquiry: text, sessionId }),
+        });
+        typing.remove();
+        if (!res.ok) {
+          appendMessage("bot", `Server error: HTTP ${res.status}`).classList.add("error");
+          return;
+        }
+        const data = await res.json();
+        sessionId = data.sessionId;
+        updateSessionLabel();
+        appendMessage("bot", data.response, { intent: data.intent, traceId: data.traceId });
+        appendActions(data.actions);
+      } catch (e) {
+        typing.remove();
+        appendMessage("bot", `Network error: ${e.message}`).classList.add("error");
+      } finally {
+        sendBtn.disabled = false;
+        input.disabled = false;
+        input.focus();
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+      send(text);
+    });
+
+    // Enter to submit, Shift+Enter for newline.
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    newConvoBtn.addEventListener("click", () => {
+      sessionId = null;
+      // Re-render the welcome block so suggestion chips reappear.
+      messagesEl.innerHTML = `
+        <div class="welcome" id="welcome">
+          <h2>Support Triage</h2>
+          <p>I can help with <strong>refunds</strong> (mention an order id), <strong>technical issues</strong> (login, API tokens, rate limits, sync), or <strong>billing</strong> questions.</p>
+          <div class="suggestions">
+            <button class="suggestion" data-text="I want a refund"><span class="suggestion-cat">refund</span>I want a refund</button>
+            <button class="suggestion" data-text="I can't log in — how do I reset my password?"><span class="suggestion-cat">technical</span>Reset my password</button>
+            <button class="suggestion" data-text="What's the API rate limit?"><span class="suggestion-cat">technical</span>API rate limit</button>
+            <button class="suggestion" data-text="What plan is alice@example.com on?"><span class="suggestion-cat">billing</span>Check account plan</button>
+          </div>
+        </div>`;
+      wireSuggestions();
+      updateSessionLabel();
+      input.focus();
+    });
+
+    // Delegate the click to the parent so freshly-rendered chips also work after "New conversation".
+    function wireSuggestions() {
+      document.querySelectorAll(".suggestion").forEach((btn) => {
+        btn.onclick = () => {
+          const text = btn.getAttribute("data-text");
+          input.value = text;
+          form.requestSubmit();
+        };
+      });
+    }
+    wireSuggestions();
+
+    updateSessionLabel();
+  </script>
+</body>
+</html>

@@ -12,6 +12,7 @@ Each top-level directory is a standalone example module:
 | `web/loom-web/` | Project Loom virtual threads — throughput + memory comparison (Gradle) |
 | `web/webflux/` | Spring WebFlux / reactive (Gradle) |
 | `ai/djl/` | Deep Java Library — CodeBERTa language classification (Gradle) |
+| `ai/langgraph/` | LangChain4j + LangGraph4j customer-support triage agent with LangSmith tracing (Gradle) |
 | `ai/todo-mcp/` | Spring AI MCP server + client example (Gradle) |
 | `data/elasticsearch/` | Elasticsearch integration (Gradle) |
 | `data/jpa-multitenancy/` | JPA multi-tenancy patterns (Gradle) |
@@ -37,7 +38,7 @@ Each top-level directory is a standalone example module:
 
 ## Build Systems
 
-d- **Gradle** (multi-module): `ai` (submodules: `djl`, `todo-mcp`), `api-doc`, `data` (submodules: `elasticsearch`, `jpa-multitenancy`), `datasketches`, `flowable`, `jobrunr`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `jwt-common`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `web` (submodules: `http2`, `loom-web`, `webflux`)
+d- **Gradle** (multi-module): `ai` (submodules: `djl`, `langgraph`, `todo-mcp`), `api-doc`, `data` (submodules: `elasticsearch`, `jpa-multitenancy`), `datasketches`, `flowable`, `jobrunr`, `graphql`, `grpc` (submodules: `hello-world`, `generic-filters`, `react-dynamic-components`), `jwt-common`, `messaging`, `nextjs`, `rate-limiting`, `salesforce-okta`, `service-discovery`, `web` (submodules: `http2`, `loom-web`, `webflux`)
   - Root `settings.gradle` includes these as subprojects
   - Java 17, Gradle 9.3.1
   - Run: `./gradlew :<module>:bootRun` or `./gradlew :<module>:test`

@@ -1,0 +1,42 @@
+# LM Studio (or any OpenAI-compatible local server).
+#
+# A 5-minute read timeout — defensive headroom for cold-start LLM calls. With Apache
+# HttpClient5 on the classpath (see build.gradle) and the no-think prefill in NoThinkChatModel,
+# real warmup completes in <2s. The generous timeout is there for the rare case where the
+# model is genuinely re-tokenising a long memory.
+spring:
+  http:
+    client:
+      connect-timeout: PT30S
+      read-timeout: PT5M
+
+#
+# Activate with --spring.profiles.active=lm-studio (or SPRING_PROFILES_ACTIVE=lm-studio).
+# Start LM Studio, load a model (qwen3-30b-a3b recommended for tool calling), and click the
+# "Local Server" tab to expose it on http://localhost:1234.
+#
+# Tradeoffs vs Gemini:
+#   + Free, unlimited, offline.
+#   + No rate limits.
+#   - Slower per turn (5-15s typical on Apple Silicon for a 30B MoE).
+#   - Tool calling reliability depends on the loaded model; Qwen3-A3B is among the best
+#     open-source choices but still less consistent than gemini-2.5-flash.
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: ${LM_STUDIO_URL:http://localhost:1234/v1}
+      # LM Studio doesn't validate the key — any non-empty string works.
+      api-key: ${LM_STUDIO_API_KEY:lm-studio}
+      # Use whatever model id LM Studio shows in its Local Server tab. The defaults below
+      # assume Qwen3-30B-A3B; adjust if you loaded a different model.
+      model-name: ${LM_STUDIO_MODEL:qwen/qwen3.6-35b-a3b}
+      temperature: 0.0
+      # Local server — fail fast on connection issues, no exponential backoff.
+      max-retries: 1
+      # Local 30B-MoE inference (especially the first call after model load) can take
+      # well over the default ~60s HTTP timeout while warming up KV cache + tokenising
+      # the system prompt + tool definitions. 5 minutes is generous for the worst case;
+      # the second turn onwards typically completes in 5–15s.
+      timeout: PT5M
+      log-requests: false
+      log-responses: false

@@ -22,7 +22,7 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Controller-layer tests using a mocked {@link DjlService}. No model files are required. For
- * end-to-end inference tests, download the model per CLAUDE.md and run against the full Spring
+ * end-to-end inference tests, download the model per AGENTS.md and run against the full Spring
  * context.
  */
 @WebMvcTest(CodeClassificationController.class)

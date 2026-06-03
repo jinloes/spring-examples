@@ -3,6 +3,8 @@
 Demonstrates all four gRPC communication patterns (unary, server streaming, client streaming,
 bidirectional streaming) using a `GreetingService`, with a REST facade that exercises each pattern.
 
+> 📐 Architecture, design, and reference details for this module live in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## How to Run
 
 ```bash
@@ -10,30 +12,6 @@ bidirectional streaming) using a `GreetingService`, with a REST facade that exer
 ```
 
 gRPC server: **9090**, HTTP server: **8080**
-
-## API Endpoints
-
-| Method | Path | gRPC pattern |
-|---|---|---|
-| `GET` | `/api/greeting/{name}` | Unary |
-| `GET` | `/api/greeting/stream/server/{name}` | Server streaming |
-| `GET` | `/api/greeting/stream/client` | Client streaming |
-| `GET` | `/api/greeting/stream/bidirectional` | Bidirectional streaming |
-
-```bash
-curl http://localhost:8080/api/greeting/World
-```
-
-## Proto (`src/main/proto/greeting.proto`)
-
-```protobuf
-service GreetingService {
-  rpc SayHello (HelloRequest) returns (HelloResponse);
-  rpc SayHelloServerStreaming (HelloRequest) returns (stream HelloResponse);
-  rpc SayHelloClientStreaming (stream HelloRequest) returns (HelloResponse);
-  rpc SayHelloBidirectional (stream HelloRequest) returns (stream HelloResponse);
-}
-```
 
 ## grpcurl examples
 

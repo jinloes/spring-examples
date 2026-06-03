@@ -9,6 +9,8 @@ Each sub-module exposes the same REST API so the backends are easy to compare.
 | `consul` | HashiCorp Consul | Consul agent (`docker-compose up`) |
 | `spring-cloud-kubernetes` | K8s API via Spring Cloud Kubernetes | Running K8s cluster + RBAC |
 
+> 📐 Architecture, design, and reference details for this module live in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## How to Run
 
 ### kubernetes (no Spring Cloud, K8s DNS only)
@@ -31,32 +33,6 @@ docker-compose -f service-discovery/consul/docker-compose.yml up -d
 kubectl apply -f service-discovery/spring-cloud-kubernetes/k8s/rbac.yml
 kubectl apply -f service-discovery/spring-cloud-kubernetes/k8s/deployment.yml
 ```
-
-## API Endpoints (all sub-modules)
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/hello` | Returns a greeting from this service |
-| `GET` | `/api/services` | Lists all discovered services (consul, spring-cloud-kubernetes) |
-| `GET` | `/api/instances/{serviceId}` | Lists instances of a service (consul, spring-cloud-kubernetes) |
-| `GET` | `/api/call/{serviceName}` | Calls another service via K8s DNS (kubernetes only) |
-| `GET` | `/api/env/{serviceName}` | Shows K8s-injected env vars for a service (kubernetes only) |
-
-## Architecture Comparison
-
-### kubernetes sub-module
-No Spring Cloud dependency. Relies on two K8s-native mechanisms:
-- **DNS**: Every `Service` object gets a DNS entry `<name>.<namespace>.svc.cluster.local`
-- **Env vars**: K8s injects `<SERVICE>_SERVICE_HOST` and `<SERVICE>_SERVICE_PORT` into every pod
-
-### consul sub-module
-Uses Spring Cloud Consul. On startup, the app registers itself with the Consul agent at
-`localhost:8500`. The `DiscoveryClient` bean queries Consul to resolve service IDs to live instances.
-
-### spring-cloud-kubernetes sub-module
-Uses Spring Cloud Kubernetes. The `DiscoveryClient` bean queries the Kubernetes API server directly
-(via the official K8s Java client) to list Services and their backing Endpoints. Requires RBAC
-permissions — see `k8s/rbac.yml`.
 
 ## Tests
 ```bash

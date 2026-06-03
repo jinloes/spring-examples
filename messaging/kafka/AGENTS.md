@@ -4,6 +4,8 @@ Demonstrates high-throughput service-to-service event streaming with Apache Kafk
 A REST endpoint publishes string messages to a named Kafka topic; a `@KafkaListener` consumer reads
 from the same topic and logs each received message.
 
+> 📐 Architecture, design, and reference details for this module live in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Prerequisites
 
 A running Kafka broker is required. A `docker-compose.yml` is provided that starts Kafka 3.9.0 in
@@ -23,29 +25,6 @@ The broker listens on `localhost:9092`.
 ```
 
 The application starts on port 8080.
-
-## REST Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/topics/{topic}` | Publish a plain-text message to the named Kafka topic |
-
-Example:
-
-```bash
-curl -X POST http://localhost:8080/api/topics/messages \
-  -H 'Content-Type: text/plain' -d 'hello world'
-```
-
-Returns `202 Accepted`.
-
-## Key Classes
-
-| Class | Role |
-|-------|------|
-| `MessageController` | REST controller; uses `KafkaTemplate<String, String>` to publish to any topic specified in the URL path |
-| `MessageListener` | `@KafkaListener` that subscribes to the `messages` topic using the configured consumer group; logs each received payload |
-| `KafkaApplication` | Spring Boot entry point |
 
 ## Configuration (`application.yml`)
 

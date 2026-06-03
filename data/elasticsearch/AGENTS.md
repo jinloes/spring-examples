@@ -2,12 +2,7 @@
 
 Demonstrates Spring Data Elasticsearch — index creation, document persistence, and REST-based search/retrieval using an `ElasticsearchRepository`.
 
-## What it shows
-
-- `@Document` on a Java record mapped to an Elasticsearch index
-- `ElasticsearchRepository` for CRUD operations
-- `@ResponseStatus(NOT_FOUND)` exception for clean 404 responses
-- Integration tests with Testcontainers (`ElasticsearchContainer`) and `@DynamicPropertySource`
+> 📐 Architecture, design, and reference details for this module live in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Requirements
 
@@ -27,25 +22,6 @@ docker run -d --name es \
 
 ```bash
 ./gradlew :data:elasticsearch:bootRun
-```
-
-## API Endpoints
-
-| Method | Path           | Body                  | Description             |
-|--------|----------------|-----------------------|-------------------------|
-| POST   | `/alarms`      | `{ "org": <int> }`    | Create a new alarm      |
-| GET    | `/alarms/{id}` |                       | Fetch alarm by ID (404 if not found) |
-
-### Examples
-
-```bash
-# Create an alarm
-curl -s -X POST http://localhost:8080/alarms \
-  -H 'Content-Type: application/json' \
-  -d '{"org": 42}'
-
-# Fetch an alarm
-curl -s http://localhost:8080/alarms/<id>
 ```
 
 ## Test

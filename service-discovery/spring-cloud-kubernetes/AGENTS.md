@@ -6,8 +6,10 @@ the **Kubernetes API server** directly. Spring Cloud Kubernetes auto-configures 
 bean that translates K8s `Service` and `Endpoints` objects into `ServiceInstance` records,
 giving the same Spring Cloud abstraction used by Consul, Eureka, etc.
 
-See the parent [`service-discovery/CLAUDE.md`](../CLAUDE.md) for a comparison of all three
+See the parent [`service-discovery/ARCHITECTURE.md`](../ARCHITECTURE.md) for a comparison of all three
 sub-modules.
+
+> 📐 Architecture, design, and reference details for this module live in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Prerequisites
 
@@ -15,28 +17,6 @@ sub-modules.
   API server and a `ServiceAccount` bound to the RBAC role in `k8s/rbac.yml`.
 - **Tests** use Testcontainers K3s (`rancher/k3s:v1.30.0-k3s1`) — no external cluster is needed
   to run `./gradlew :service-discovery:spring-cloud-kubernetes:test`. Docker must be running.
-
-## Key classes
-
-| Class | Role |
-|---|---|
-| `SpringCloudKubernetesApplication` | `@SpringBootApplication` entry point |
-| `ServiceDiscoveryController` | REST controller; injects `DiscoveryClient` to list services and instances |
-
-### How discovery is wired
-
-Spring Cloud Kubernetes (`spring-cloud-starter-kubernetes-client`) auto-configures:
-
-1. An `ApiClient` bean (Kubernetes Java client) from the in-cluster kubeconfig
-   (`/var/run/secrets/kubernetes.io/serviceaccount/token`) when running inside a pod, or
-   from `~/.kube/config` locally.
-2. A `DiscoveryClient` bean backed by `CoreV1Api` that calls `listNamespacedService` /
-   `listNamespacedEndpoints` on every lookup.
-
-The controller calls:
-- `discoveryClient.getServices()` — lists all `Service` names in the configured namespace
-- `discoveryClient.getInstances(serviceId)` — resolves a service name to its backing pod
-  endpoints, including `k8s_namespace` from pod metadata
 
 ## Configuration
 
@@ -85,14 +65,6 @@ kubectl apply -f service-discovery/spring-cloud-kubernetes/k8s/deployment.yml
 When run locally the Kubernetes client reads `~/.kube/config`. Discovery will query whichever
 cluster `kubectl` currently points at. If no kubeconfig is available the context will fail to
 load unless discovery is disabled via properties.
-
-## API endpoints
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/hello` | Returns a static greeting |
-| `GET` | `/api/services` | Lists all K8s Service names in the namespace |
-| `GET` | `/api/instances/{serviceId}` | Returns host, port, URI, and `k8s_namespace` for each backing pod endpoint |
 
 ## How to test
 

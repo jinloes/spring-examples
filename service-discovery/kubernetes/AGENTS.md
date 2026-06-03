@@ -10,8 +10,10 @@ to every pod:
    `<UPPER_SNAKE_SERVICE>_SERVICE_PORT` into every pod for each `ClusterIP` Service in the
    same namespace.
 
-See the parent [`service-discovery/CLAUDE.md`](../CLAUDE.md) for a comparison of all three
+See the parent [`service-discovery/ARCHITECTURE.md`](../ARCHITECTURE.md) for a comparison of all three
 sub-modules.
+
+> 📐 Architecture, design, and reference details for this module live in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Prerequisites
 
@@ -22,25 +24,6 @@ is reachable and the kubelet injects env vars.
 The `/api/hello` and `/api/env` endpoints work outside a cluster (env vars return
 `"not-injected"`). The `/api/call/{serviceName}` endpoint **only works inside a pod** — it
 resolves `<name>.default.svc.cluster.local` via CoreDNS.
-
-## Key classes
-
-| Class | Role |
-|---|---|
-| `KubernetesDiscoveryApplication` | `@SpringBootApplication` entry point; declares the `RestTemplate` bean used for DNS calls |
-| `ServiceDiscoveryController` | REST controller exposing `/api/hello`, `/api/call/{serviceName}`, and `/api/env/{serviceName}` |
-
-### How discovery is wired
-
-No Spring Cloud `DiscoveryClient` is used. The controller:
-
-- **DNS call** (`/api/call/{serviceName}`): builds the URL
-  `http://<serviceName>.default.svc.cluster.local/api/hello` and executes it with
-  `RestTemplate`. Resolution succeeds only when CoreDNS is reachable (inside a pod).
-- **Env var inspection** (`/api/env/{serviceName}`): upper-cases the name, replaces hyphens
-  with underscores, then reads `<KEY>_SERVICE_HOST` and `<KEY>_SERVICE_PORT` from Spring's
-  `Environment`. Spring's `Environment` unifies OS env vars and Spring properties, so the
-  kubelet-injected env vars are read exactly the same way at runtime.
 
 ## Configuration
 

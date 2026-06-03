@@ -10,6 +10,8 @@ Demonstrates two Redis-backed rate-limiting strategies in a Spring Boot applicat
    Lettuce-backed `ProxyManager` to maintain per-key token buckets in Redis. Supports configurable
    capacity, refill rate, and refill period with several convenience methods for common scenarios.
 
+> 📐 Architecture, design, and reference details for this module live in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## How to run
 
 Requires a running Redis instance (default: `localhost:6379`).
@@ -17,15 +19,6 @@ Requires a running Redis instance (default: `localhost:6379`).
 ```bash
 ./gradlew :rate-limiting:bootRun
 ```
-
-## Key classes
-
-| Class | Description |
-|-------|-------------|
-| `SlidingWindowRateLimiterService` | Sliding window rate limiter backed by Redis sorted set + Lua |
-| `Bucket4JRateLimiter` | Token bucket rate limiter via Bucket4j + Redis (Lettuce) |
-| `RateLimitResult` | Immutable record: `allowed`, `remainingTokens`, `retryAfter` |
-| `RedisConfig` | Configures `RedisTemplate` and Bucket4j `ProxyManager` |
 
 ## Configuration properties
 

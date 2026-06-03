@@ -7,6 +7,7 @@ dependency-reduced-pom.xml
 **/build
 **/jmeter.log
 AGENTS.local.md
+CLAUDE.local.md
 .env
 **/.next/
 **/node_modules/

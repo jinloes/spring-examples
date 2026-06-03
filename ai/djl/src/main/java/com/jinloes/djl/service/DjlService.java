@@ -21,7 +21,7 @@ import org.springframework.util.StringUtils;
  * fresh {@link Predictor} is created per request because predictors are not thread-safe; the
  * underlying {@link ZooModel} is safe to share across threads.
  *
- * <p>See {@code application.yml} and the module CLAUDE.md for model download instructions.
+ * <p>See {@code application.yml} and the module AGENTS.md for model download instructions.
  */
 @Service
 public class DjlService {

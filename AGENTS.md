@@ -77,6 +77,7 @@ d- **Gradle** (multi-module): `ai` (submodules: `djl`, `langgraph`, `todo-mcp`),
 - Tests use JUnit Platform (`useJUnitPlatform()`)
 - New Gradle modules should be added to `settings.gradle`
 - **After all code changes**, update the AGENTS.md (and ARCHITECTURE.md, where present) for any module you modified — keep endpoints, architecture, run instructions, and test commands in sync with the code. If the module has no AGENTS.md and the change is non-trivial, create one.
+- **After adding, removing, or significantly changing a module**, update the module table in the root `README.md` to keep module paths, descriptions, and build system labels in sync.
 - **After all code changes**, run Spotless on only the modified Gradle modules:
   ```bash
   git diff --name-only HEAD | grep '/' | sed 's|/.*||' | sort -u | xargs -I{} ./gradlew :{}:spotlessApply
